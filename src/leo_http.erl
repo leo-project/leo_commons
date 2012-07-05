@@ -26,6 +26,7 @@
 -module(leo_http).
 
 -author('Yoshiyuki Kanno').
+-author('Yosuke Hara').
 -vsn('0.9.0').
 
 -export([key/2, key/3]).
@@ -46,10 +47,13 @@ key(EndPoint, Host, Path) ->
         0 ->
             [Top|_] = string:tokens(Path, "/"),
             case string:equal(Host, Top) of
-                true  -> "/" ++ Key = Path;
-                false -> Key = Host ++ Path
-            end,
-            Key;
+                true ->
+                    "/" ++ Key = Path,
+                    Key;
+                false ->
+                    Key = Host ++ Path,
+                    Key
+            end;
         %% Bucket is included in Path
         1 ->
             "/" ++ Key = Path,
