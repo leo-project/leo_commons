@@ -155,12 +155,12 @@ incr(Hashtable, K) ->
 loop(Type) ->
     receive
         {Pid, get, K} ->
-            Pid ! get(K);
-
+            Pid ! get(K),
+            loop(Type);
         {Pid, put, K, V} when Type == mutable ->
             put(K, V),
-            Pid ! ok;
-
+            Pid ! ok,
+            loop(Type);
         {Pid, put, K, V} when Type == immutable ->
             case get(K) of
                 undefined ->
@@ -168,56 +168,22 @@ loop(Type) ->
                     Pid ! ok;
                 _ ->
                     Pid ! {error, already_defined}
-            end;
+            end,
+            loop(Type);
 
         {Pid, delete, K} ->
-            Pid ! erase(K);
+            Pid ! erase(K),
+            loop(Type);
 
         {Pid, all} ->
-            Pid ! get()
-    end,
-    loop(Type).
+            Pid ! get(),
+            loop(Type)
+    after 3000 ->
+            {error, closed}
+    end.
 
 
 %%----------------------------------------------------------------------
 %% TEST
 %%----------------------------------------------------------------------
-put_immutable_test() ->
-    H = leo_hashtable:new(immutable),
-    ok = leo_hashtable:put(H,'test',5),
-    {error,already_defined} = leo_hashtable:put(H,'test',6),
-    Ret = leo_hashtable:get(H,'test'),
-    ?assertEqual(5, Ret).
-
-put_mutable_test() ->
-    H = leo_hashtable:new(),
-    ok = leo_hashtable:put(H,'test',5),
-    ok = leo_hashtable:put(H,'test',7),
-    Ret = leo_hashtable:get(H,'test'),
-    ?assertEqual(7, Ret).
-
-append_test() ->
-    H = leo_hashtable:new(),
-    ok = leo_hashtable:append(H,'test-a',1),
-    ok = leo_hashtable:append(H,'test-a',2),
-    ok = leo_hashtable:append(H,'test-a',3),
-    ok = leo_hashtable:append(H,'test-a',4),
-    ok = leo_hashtable:append(H,'test-a',5),
-    Value= leo_hashtable:get(H, 'test-a'),
-    ?assertEqual([1,2,3,4,5], lists:sort(Value)),
-
-    ok = leo_hashtable:put(H,'test-b',1),
-    {error, _} = leo_hashtable:append(H,'test-b',1).
-
-all_test() ->
-    H = leo_hashtable:new(),
-    ok = leo_hashtable:put(H,'test1',3),
-    ok = leo_hashtable:put(H,'test2',5),
-    ok = leo_hashtable:put(H,'test3',7),
-
-    Ret = leo_hashtable:all(H),
-    ?assertEqual(3, erlang:length(Ret)),
-
-    Keys = leo_hashtable:keys(H),
-    ?assertEqual(3, erlang:length(Keys)).
 
