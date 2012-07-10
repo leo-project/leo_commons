@@ -155,12 +155,10 @@ incr(Hashtable, K) ->
 loop(Type) ->
     receive
         {Pid, get, K} ->
-            Pid ! get(K),
-            loop(Type);
+            Pid ! get(K);
         {Pid, put, K, V} when Type == mutable ->
             put(K, V),
-            Pid ! ok,
-            loop(Type);
+            Pid ! ok;
         {Pid, put, K, V} when Type == immutable ->
             case get(K) of
                 undefined ->
@@ -168,20 +166,13 @@ loop(Type) ->
                     Pid ! ok;
                 _ ->
                     Pid ! {error, already_defined}
-            end,
-            loop(Type);
-
+            end;
         {Pid, delete, K} ->
-            Pid ! erase(K),
-            loop(Type);
-
+            Pid ! erase(K);
         {Pid, all} ->
-            Pid ! get(),
-            loop(Type)
-    after 3000 ->
-            {error, closed}
-    end.
-
+            Pid ! get()            
+    end,
+    loop(Type).
 
 %%----------------------------------------------------------------------
 %% TEST
