@@ -33,35 +33,29 @@
 -export([read/1, write/1, delete/1]).
 
 read(Fun) ->
-    case catch mnesia:transaction(Fun) of
-        {aborted, Cause} ->
+    case catch mnesia:activity(transaction, Fun) of
+        {_, Cause} ->
             {error, Cause};
-        {atomic, []} ->
+        [] ->
             not_found;
-        {atomic, Rec} ->
-            {ok, Rec};
-        {'EXIT', Cause} ->
-            {error, Cause}
+        List ->
+            {ok, List}
     end.
 
 write(Fun) ->
-    case catch mnesia:transaction(Fun) of
-        {atomic, ok}   ->
+    case catch mnesia:activity(transaction, Fun) of
+        ok ->
             ok;
-        {aborted, Cause} ->
-            {error, Cause};
-        {'EXIT', Cause} ->
+        {_, Cause} ->
             {error, Cause}
     end.
 
 
 delete(Fun) ->
-    case catch mnesia:transaction(Fun) of
-        {atomic, ok}   ->
+    case catch mnesia:activity(transaction, Fun) of
+        ok ->
             ok;
-        {aborted, Cause} ->
-            {error, Cause};
-        {'EXIT', Cause} ->
+        {_, Cause} ->
             {error, Cause}
     end.
 
