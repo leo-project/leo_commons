@@ -27,7 +27,7 @@
 
 -author('Yosuke Hara').
 -author('Yoshiyuki Kanno').
--vsn('0.9.0').
+-vsn('0.9.1').
 
 -export([power/2, floor/1, ceiling/1, round/2]).
 -export([now/0, clock/0, zone/0, date_format/1, date_format/2,
