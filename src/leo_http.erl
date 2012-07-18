@@ -27,7 +27,7 @@
 
 -author('Yoshiyuki Kanno').
 -author('Yosuke Hara').
--vsn('0.9.0').
+-vsn('0.9.1').
 
 -export([key/2, key/3]).
 
