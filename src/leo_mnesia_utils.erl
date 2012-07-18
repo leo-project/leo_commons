@@ -26,7 +26,6 @@
 -module(leo_mnesia_utils).
 
 -author('Yosuke Hara').
--vsn('0.9.1').
 
 -include_lib("stdlib/include/qlc.hrl").
 

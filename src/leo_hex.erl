@@ -26,7 +26,6 @@
 -module(leo_hex).
 
 -author('Yosuke Hara').
--vsn('0.9.1').
 
 -include_lib("eunit/include/eunit.hrl").
 
