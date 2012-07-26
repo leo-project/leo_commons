@@ -28,7 +28,8 @@
 -author('Yoshiyuki Kanno').
 -author('Yosuke Hara').
 
--export([key/2, key/3]).
+-export([key/2, key/3,
+         get_headers/2, get_headers/3, get_amz_headers/1]).
 
 -include("leo_commons.hrl").
 
@@ -64,3 +65,28 @@ key(EndPoint, Host, Path) ->
             Key = Bucket ++ Path,
             Key
     end.
+
+is_amz_header(Key, _Val) ->
+    LowerKey = string:to_lower(Key),
+    case string:str(LowerKey, "x-amz-") of
+        0 -> false;
+        1 -> true;
+        _ -> false
+    end.
+
+get_headers(TreeHeaders, FilterFun) when is_function(FilterFun) ->
+    Iter = gb_trees:iterator(TreeHeaders),
+    get_headers(Iter, FilterFun, []).
+get_headers(Iter, FilterFun, Acc) ->
+    case gb_trees:next(Iter) of
+        none ->
+            Acc;
+        {Key, Val, Iter2} ->
+            case FilterFun(Key, Val) of
+                true ->  get_headers(Iter2, FilterFun, [{Key,Val}|Acc]);
+                false -> get_headers(Iter2, FilterFun, Acc)
+            end
+    end.
+
+get_amz_headers(TreeHeaders) ->
+    get_headers(TreeHeaders, fun is_amz_header/2).
