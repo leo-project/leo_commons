@@ -36,33 +36,38 @@
 -ifdef(EUNIT).
 api_test_() ->
     [
-        fun key_inc_path_/0,
-        fun key_eq_host1_/0,
-        fun key_eq_host2_/0,
-        fun key_inc_host1_/0,
-        fun get_amz_headers_emp_/0,
-        fun get_amz_headers_none_/0,
-        fun get_amz_headers_normal1_/0,
-        fun get_amz_headers_normal2_/0
+     fun key_inc_path_/0,
+     fun key_eq_host1_/0,
+     fun key_eq_host2_/0,
+     fun key_inc_host1_/0,
+     fun get_amz_headers_emp_/0,
+     fun get_amz_headers_none_/0,
+     fun get_amz_headers_normal1_/0,
+     fun get_amz_headers_normal2_/0,
+     fun rfc1123_date/0
     ].
+
 key_inc_path_() ->
     Host = ?S3_DEFAULT_ENDPOINT,
     Path = "/bucket/path_to_file.png",
     Ret = leo_http:key(Host, Path),
     "/" ++ Expected = Path,
     ?assertEqual(Expected, Ret).
+
 key_eq_host1_() ->
     Host = "www.leofs.com",
     Path = "/images/path_to_file.png",
     Ret = leo_http:key(Host, Path),
     Expected = Host ++ Path,
     ?assertEqual(Expected, Ret).
+
 key_eq_host2_() ->
     Host = "www.leofs.com",
     Path = "/www.leofs.com/path_to_file.png",
     Ret = leo_http:key(Host, Path),
     "/" ++ Expected = Path,
     ?assertEqual(Expected, Ret).
+
 key_inc_host1_() ->
     Bucket = "bucket",
     Host = Bucket ++ "." ++ ?S3_DEFAULT_ENDPOINT,
@@ -74,6 +79,7 @@ key_inc_host1_() ->
 get_amz_headers_emp_() ->
     T1 = gb_trees:empty(),
     ?assertEqual([], leo_http:get_amz_headers(T1)).
+
 get_amz_headers_none_() ->
     T1 = gb_trees:empty(),
     T2 = gb_trees:enter("Date", "Tue, 27 Mar 2007 21:15:45 +0000", T1),
@@ -81,6 +87,7 @@ get_amz_headers_none_() ->
     T4 = gb_trees:enter("Content-Length", 94328, T3),
     T5 = gb_trees:enter("Content-Type", "image/jpeg", T4),
     ?assertEqual([], leo_http:get_amz_headers(T5)).
+
 get_amz_headers_normal1_() ->
     T1 = gb_trees:empty(),
     T2 = gb_trees:enter("Date", "Tue, 27 Mar 2007 21:15:45 +0000", T1),
@@ -90,6 +97,7 @@ get_amz_headers_normal1_() ->
     AmzHeaders = leo_http:get_amz_headers(T3),
     ?assertEqual(1, length(AmzHeaders)),
     ?assertEqual({Key, Val}, hd(AmzHeaders)).
+
 get_amz_headers_normal2_() ->
     T1 = gb_trees:empty(),
     Key = "x-amz-date",
@@ -100,5 +108,8 @@ get_amz_headers_normal2_() ->
     T3 = gb_trees:enter(Key2, Val2, T2),
     AmzHeaders = leo_http:get_amz_headers(T3),
     ?assertEqual(2, length(AmzHeaders)).
+
+rfc1123_date() ->
+    ?assertNotEqual([], leo_http:rfc1123_date(leo_utils:now())).
 
 -endif.
