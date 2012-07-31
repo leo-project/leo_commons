@@ -34,6 +34,7 @@
         ]).
 
 -include("leo_commons.hrl").
+-include_lib("eunit/include/eunit.hrl").
 
 %% @doc generate the global uniq key used by internal
 %%
@@ -41,20 +42,25 @@
              string()).
 key(Host, Path) ->
     key(?S3_DEFAULT_ENDPOINT, Host, Path).
+
 -spec(key(string(), string(), string()) ->
              string()).
 key(EndPoint, Host, Path) ->
     case string:str(Host, EndPoint) of
         %% Bucket equals Host
         0 ->
-            [Top|_] = string:tokens(Path, "/"),
-            case string:equal(Host, Top) of
-                true ->
-                    "/" ++ Key = Path,
-                    Key;
-                false ->
-                    Key = Host ++ Path,
-                    Key
+            case string:tokens(Path, "/") of
+                [] ->
+                    [];                
+                [Top|_] ->
+                    case string:equal(Host, Top) of
+                        true ->
+                            "/" ++ Key = Path,
+                            Key;
+                        false ->
+                            Key = Host ++ Path,
+                            Key
+                    end
             end;
         %% Bucket is included in Path
         1 ->
