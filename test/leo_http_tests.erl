@@ -44,7 +44,8 @@ api_test_() ->
      fun get_amz_headers_none_/0,
      fun get_amz_headers_normal1_/0,
      fun get_amz_headers_normal2_/0,
-     fun rfc1123_date/0
+     fun rfc1123_date/0,
+     fun web_date/0
     ].
 
 key_inc_path_() ->
@@ -111,5 +112,8 @@ get_amz_headers_normal2_() ->
 
 rfc1123_date() ->
     ?assertNotEqual([], leo_http:rfc1123_date(leo_utils:now())).
+
+web_date() ->
+    ?assertEqual("2012-07-04T12:34:56.000Z", leo_http:web_date(63508624496)).
 
 -endif.
