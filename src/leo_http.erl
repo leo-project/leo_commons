@@ -30,7 +30,7 @@
 
 -export([key/2, key/3,
          get_headers/2, get_headers/3, get_amz_headers/1,
-         rfc1123_date/1
+         rfc1123_date/1,web_date/1
         ]).
 
 -include("leo_commons.hrl").
@@ -112,6 +112,13 @@ rfc1123_date(Date) ->
       calendar:universal_time_to_local_time(
         calendar:gregorian_seconds_to_datetime(Date))).
 
+%% @doc Convert gregorian seconds to date formated data( YYYY-MM-DDTHH:MI:SS000Z )
+%%
+-spec(web_date(integer()) ->
+             string()).
+web_date(GregSec) when is_integer(GregSec) ->
+    {{Y,M,D},{H,MI,S}} = calendar:gregorian_seconds_to_datetime(GregSec),
+    lists:flatten(io_lib:format("~4.10.0B-~2.10.0B-~2.10.0BT~2.10.0B:~2.10.0B:~2.10.0B.000Z",[Y,M,D,H,MI,S])).
 
 %%--------------------------------------------------------------------
 %%% INTERNAL FUNCTIONS
