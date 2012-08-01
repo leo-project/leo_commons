@@ -82,18 +82,18 @@ get_amz_headers_emp_() ->
 
 get_amz_headers_none_() ->
     T1 = gb_trees:empty(),
-    T2 = gb_trees:enter("Date", "Tue, 27 Mar 2007 21:15:45 +0000", T1),
-    T3 = gb_trees:enter("Host", "johnsmith.s3.amazonaws.com", T2),
-    T4 = gb_trees:enter("Content-Length", 94328, T3),
-    T5 = gb_trees:enter("Content-Type", "image/jpeg", T4),
+    T2 = gb_trees:enter("Date", {"Date", "Tue, 27 Mar 2007 21:15:45 +0000"}, T1),
+    T3 = gb_trees:enter("Host", {"Host", "johnsmith.s3.amazonaws.com"}, T2),
+    T4 = gb_trees:enter("Content-Length", {"Content-Length", 94328}, T3),
+    T5 = gb_trees:enter("Content-Type", {"Content-Type", "image/jpeg"}, T4),
     ?assertEqual([], leo_http:get_amz_headers(T5)).
 
 get_amz_headers_normal1_() ->
     T1 = gb_trees:empty(),
-    T2 = gb_trees:enter("Date", "Tue, 27 Mar 2007 21:15:45 +0000", T1),
+    T2 = gb_trees:enter("Date", {"Date", "Tue, 27 Mar 2007 21:15:45 +0000"}, T1),
     Key = "x-amz-date",
     Val = "Tue, 27 Mar 2007 21:20:26 +0000",
-    T3 = gb_trees:enter(Key, Val, T2),
+    T3 = gb_trees:enter(Key, {Key, Val}, T2),
     AmzHeaders = leo_http:get_amz_headers(T3),
     ?assertEqual(1, length(AmzHeaders)),
     ?assertEqual({Key, Val}, hd(AmzHeaders)).
@@ -102,10 +102,10 @@ get_amz_headers_normal2_() ->
     T1 = gb_trees:empty(),
     Key = "x-amz-date",
     Val = "Tue, 27 Mar 2007 21:20:26 +0000",
-    T2 = gb_trees:enter(Key, Val, T1),
+    T2 = gb_trees:enter(Key, {Key, Val}, T1),
     Key2 = "X-Amz-Meta-ReviewedBy",
     Val2 = "jane@johnsmith.net",
-    T3 = gb_trees:enter(Key2, Val2, T2),
+    T3 = gb_trees:enter(Key2, {Key2, Val2}, T2),
     AmzHeaders = leo_http:get_amz_headers(T3),
     ?assertEqual(2, length(AmzHeaders)).
 
