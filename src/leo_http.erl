@@ -51,7 +51,7 @@ key(EndPoint, Host, Path) ->
         0 ->
             case string:tokens(Path, "/") of
                 [] ->
-                    [];                
+                    Host ++ "/";
                 [Top|_] ->
                     case string:equal(Host, Top) of
                         true ->
@@ -120,9 +120,5 @@ rfc1123_date(Date) ->
 -spec(is_amz_header(string()) ->
              boolean()).
 is_amz_header(Key) ->
-    case string:str(string:to_lower(Key), "x-amz-") of
-        0 -> false;
-        1 -> true;
-        _ -> false
-    end.
+    (string:str(string:to_lower(Key), "x-amz-") == 1).
 
