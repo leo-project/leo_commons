@@ -40,6 +40,7 @@ api_test_() ->
      fun key_eq_host1_/0,
      fun key_eq_host2_/0,
      fun key_inc_host1_/0,
+     fun key_bucket_list_/0,
      fun get_amz_headers_emp_/0,
      fun get_amz_headers_none_/0,
      fun get_amz_headers_normal1_/0,
@@ -76,6 +77,15 @@ key_inc_host1_() ->
     Ret = leo_http:key(Host, Path),
     Expected = Bucket ++ Path,
     ?assertEqual(Expected, Ret).
+
+key_bucket_list_() ->
+    Host = ?S3_DEFAULT_ENDPOINT,
+    Path = "/",
+    Ret = leo_http:key(Host, Path),
+    ?assertEqual(Path, Ret),
+    Path2 = "",
+    Ret2 = leo_http:key(Host, Path2),
+    ?assertEqual(Path, Ret2).
 
 get_amz_headers_emp_() ->
     T1 = gb_trees:empty(),

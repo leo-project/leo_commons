@@ -64,8 +64,14 @@ key(EndPoint, Host, Path) ->
             end;
         %% Bucket is included in Path
         1 ->
-            "/" ++ Key = Path,
-            Key;
+            case string:tokens(Path, "/") of
+                [] ->
+                    %% the case of getting bucket list
+                    "/";
+                _Else ->
+                    "/" ++ Key = Path,
+                    Key
+            end;
         %% Bucket is included in Host
         %% strip .s3.amazonaws.com
         Index ->
