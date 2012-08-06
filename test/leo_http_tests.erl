@@ -57,10 +57,11 @@ key_inc_path_() ->
     ?assertEqual(Expected, Ret).
 
 key_eq_host1_() ->
-    Host = "www.leofs.com",
+    Host = "images.leofs.com",
     Path = "/images/path_to_file.png",
     Ret = leo_http:key(Host, Path),
-    Expected = Host ++ Path,
+    Expected = "images" ++ Path,
+
     ?assertEqual(Expected, Ret).
 
 key_eq_host2_() ->
@@ -68,6 +69,7 @@ key_eq_host2_() ->
     Path = "/www.leofs.com/path_to_file.png",
     Ret = leo_http:key(Host, Path),
     "/" ++ Expected = Path,
+
     ?assertEqual(Expected, Ret).
 
 key_inc_host1_() ->
@@ -76,6 +78,7 @@ key_inc_host1_() ->
     Path = "/path_to_file.png",
     Ret = leo_http:key(Host, Path),
     Expected = Bucket ++ Path,
+
     ?assertEqual(Expected, Ret).
 
 key_bucket_list_() ->
@@ -83,6 +86,7 @@ key_bucket_list_() ->
     Path = "/",
     Ret = leo_http:key(Host, Path),
     ?assertEqual(Path, Ret),
+
     Path2 = "",
     Ret2 = leo_http:key(Host, Path2),
     ?assertEqual(Path, Ret2).

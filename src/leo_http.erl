@@ -47,18 +47,22 @@ key(Host, Path) ->
              string()).
 key(EndPoint, Host, Path) ->
     case string:str(Host, EndPoint) of
-        %% Bucket equals Host
+        %% Bucket equals a part of "Host"
         0 ->
+            Bucket = hd(string:tokens(Host, ".")),
+
             case string:tokens(Path, "/") of
                 [] ->
-                    Host ++ "/";
+                    Bucket ++ "/";
+                    %% Host ++ "/";
                 [Top|_] ->
                     case string:equal(Host, Top) of
                         true ->
                             "/" ++ Key = Path,
                             Key;
                         false ->
-                            Key = Host ++ Path,
+                            Key = Bucket ++ Path,
+                            %% Key = Host ++ Path,
                             Key
                     end
             end;
