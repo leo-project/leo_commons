@@ -40,6 +40,7 @@ api_test_() ->
      fun key_eq_host1_/0,
      fun key_eq_host2_/0,
      fun key_inc_host1_/0,
+     fun key_inc_host2_/0,
      fun key_bucket_list_/0,
      fun get_amz_headers_emp_/0,
      fun get_amz_headers_none_/0,
@@ -57,10 +58,10 @@ key_inc_path_() ->
     ?assertEqual(Expected, Ret).
 
 key_eq_host1_() ->
-    Host = "images.leofs.com",
+    Host = "www.leofs.com",
     Path = "/images/path_to_file.png",
     Ret = leo_http:key(Host, Path),
-    Expected = "images" ++ Path,
+    Expected = Host ++ Path,
 
     ?assertEqual(Expected, Ret).
 
@@ -76,10 +77,23 @@ key_inc_host1_() ->
     Bucket = "bucket",
     Host = Bucket ++ "." ++ ?S3_DEFAULT_ENDPOINT,
     Path = "/path_to_file.png",
+
     Ret = leo_http:key(Host, Path),
     Expected = Bucket ++ Path,
 
     ?assertEqual(Expected, Ret).
+
+
+key_inc_host2_() ->
+    EndPoint = "leofs.org",
+    Bucket = "bucket",
+    Host = Bucket ++ "." ++ EndPoint,
+    Path = "/path_to_file.png",
+
+    Ret = leo_http:key([EndPoint, "localhost"], Host, Path),
+    Expected = Bucket ++ Path,
+    ?assertEqual(Expected, Ret).
+
 
 key_bucket_list_() ->
     Host = ?S3_DEFAULT_ENDPOINT,

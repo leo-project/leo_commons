@@ -19,7 +19,7 @@
 %% under the License.
 %%
 %% ---------------------------------------------------------------------
-%% leo_http  - Utils for Gateway's HTTP logic
+%% leo_http  - Utils for HTTP/S3-API
 %% @doc
 %% @end
 %%======================================================================
@@ -36,53 +36,71 @@
 -include("leo_commons.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
-%% @doc generate the global uniq key used by internal
+%% @doc Retrieve a filename(KEY) from Host and Path.
 %%
 -spec(key(string(), string()) ->
              string()).
 key(Host, Path) ->
-    key(?S3_DEFAULT_ENDPOINT, Host, Path).
+    key([?S3_DEFAULT_ENDPOINT], Host, Path).
 
--spec(key(string(), string(), string()) ->
+-spec(key(list(), string(), string()) ->
              string()).
-key(EndPoint, Host, Path) ->
-    case string:str(Host, EndPoint) of
-        %% Bucket equals a part of "Host"
-        0 ->
-            Bucket = hd(string:tokens(Host, ".")),
+key(EndPointList, Host, Path) ->
+    EndPoint =
+        case lists:foldl(fun(E, [] = Acc) ->
+                                 case (string:str(Host, E) > 0) of
+                                     true  -> [E|Acc];
+                                     false -> Acc
+                                 end;
+                            (_, Acc) ->
+                                 Acc
+                         end, [], EndPointList) of
+            [] -> [];
+            [Value|_] -> Value
+        end,
+    key_1(EndPoint, Host, Path).
 
-            case string:tokens(Path, "/") of
-                [] ->
-                    Bucket ++ "/";
-                    %% Host ++ "/";
-                [Top|_] ->
-                    case string:equal(Host, Top) of
-                        true ->
-                            "/" ++ Key = Path,
-                            Key;
-                        false ->
-                            Key = Bucket ++ Path,
-                            %% Key = Host ++ Path,
-                            Key
-                    end
-            end;
-        %% Bucket is included in Path
-        1 ->
-            case string:tokens(Path, "/") of
-                [] ->
-                    %% the case of getting bucket list
-                    "/";
-                _Else ->
+
+%% @doc Retrieve a filename(KEY) from Host and Pat.
+%% @private
+key_1(EndPoint, Host, Path) ->
+    Index = string:str(Host, EndPoint),
+    key_2(Index, Host, Path).
+
+
+%% @doc "S3-Bucket" is a part of the host
+%% @private
+key_2(0, Host, Path) ->
+    case string:tokens(Path, "/") of
+        [] ->
+            Host ++ "/";
+        [Top|_] ->
+            case string:equal(Host, Top) of
+                true ->
                     "/" ++ Key = Path,
+                    Key;
+                false ->
+                    Key = Host ++ Path,
                     Key
-            end;
-        %% Bucket is included in Host
-        %% strip .s3.amazonaws.com
-        Index ->
-            Bucket = string:substr(Host, 1, Index - 2),
-            Key = Bucket ++ Path,
+            end
+    end;
+
+%% @doc "S3-Bucket" is included in the path
+%% @private
+key_2(1,_Host, Path) ->
+    case string:tokens(Path, "/") of
+        [] ->
+            "/";
+        _ ->
+            "/" ++ Key = Path,
             Key
-    end.
+    end;
+
+%% @doc "S3-Bucket" is included in the host
+%% @private
+key_2(Index, Host, Path) ->
+    Bucket = string:substr(Host, 1, Index - 2),
+    Bucket ++ Path.
 
 
 %% @doc Retrieve AMZ-S3-related headers
