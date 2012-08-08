@@ -61,14 +61,14 @@ key(EndPointList, Host, Path) ->
     key_1(EndPoint, Host, Path).
 
 
-%% @doc Retrieve a filename(KEY) from Host and Pat.
+%% @doc Retrieve a filename(KEY) from Host and Path.
 %% @private
 key_1(EndPoint, Host, Path) ->
     Index = string:str(Host, EndPoint),
     key_2(Index, Host, Path).
 
 
-%% @doc "S3-Bucket" is a part of the host
+%% @doc "S3-Bucket" is equal to the host.
 %% @private
 key_2(0, Host, Path) ->
     case string:tokens(Path, "/") of
