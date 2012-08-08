@@ -2,7 +2,7 @@
 %%
 %% Leo Commons
 %%
-%% Copyright (c) 2012 Rakuten, Inc.
+%% Copyright (c) 2012 Rakuten, Inc
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -19,15 +19,27 @@
 %% under the License.
 %%
 %% ---------------------------------------------------------------------
-%% Leo Commons - Utils
+%% Leo Commons - Error Logger Utils
 %% @doc
 %% @end
 %%======================================================================
--module(leo_commons).
+-module(leo_error_logger_utils).
 
 -author('Yosuke Hara').
 
--export([vsn/0]).
+-include_lib("eunit/include/eunit.hrl").
 
-vsn() ->
-    application:get_key(leo_commons, vsn).
+-export([append/5]).
+
+%% @doc Append a log message into the log file
+%%
+-spec(append(error | warn, string(), string(), integer(), string()) ->
+             ok).
+append(Type, ModString, FunString, Line, Message) ->
+    Fun = case Type of
+              error -> error_msg;
+              warn  -> warning_msg
+          end,
+
+    erlang:apply(error_logger, Fun, ["~p,~p,~p,~p~n", [{module, ModString}, {function, FunString},
+                                                       {line, Line}, {body, Message}]]).
