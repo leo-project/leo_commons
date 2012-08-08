@@ -17,6 +17,4 @@ clean:
 distclean:
 	@./rebar delete-deps
 	@./rebar clean
-qc:
-	@./rebar qc skip_deps=true
 
