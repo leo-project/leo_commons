@@ -36,20 +36,3 @@
 node_existence(Node) ->
     (net_adm:ping(Node) == pong).
 
-
-%% %% @doc
-%% %%
-%% -spec(node_to_part_of_file_name() ->
-%%              string()).
-%% node_to_part_of_file_name() ->
-%%     re:replace(atom_to_list(erlang:node()),"@","_at_",[{return, list}]).
-
-%% %% @doc
-%% %%
-%% -spec(gen_checksum(any()) -> binary()).
-%% gen_checksum(Arg) ->
-%%     CRC32 = erlang:list_to_binary(
-%%               leo_hex:integer_to_hex(erlang:crc32(term_to_binary(Arg)))),
-%%     CRC32.
-
-
