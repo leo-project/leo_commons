@@ -139,7 +139,7 @@ get_amz_headers_normal2_() ->
     ?assertEqual(2, length(AmzHeaders)).
 
 rfc1123_date() ->
-    ?assertNotEqual([], leo_http:rfc1123_date(leo_utils:now())).
+    ?assertNotEqual([], leo_http:rfc1123_date(leo_date:now())).
 
 web_date() ->
     ?assertEqual("2012-07-04T12:34:56.000Z", leo_http:web_date(63508624496)).

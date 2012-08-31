@@ -23,7 +23,7 @@
 %% @doc
 %% @end
 %%======================================================================
--module(leo_mnesia_utils).
+-module(leo_mnesia).
 
 -author('Yosuke Hara').
 

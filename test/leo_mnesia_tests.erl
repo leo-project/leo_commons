@@ -19,11 +19,11 @@
 %% under the License.
 %%
 %% -------------------------------------------------------------------
-%% Hashtable Test
+%% Mnesia Test
 %% @doc
 %% @end
 %%====================================================================
--module(leo_mnesia_utils_tests).
+-module(leo_mnesia_tests).
 -author('Yosuke Hara').
 -vsn('0.9.1').
 
@@ -61,7 +61,7 @@ suite_() ->
     %% WRITE
     Val0 = #test_table{id = 1, text = "test0"},
     F1 = fun()-> mnesia:write(test_table, Val0, write) end,
-    ok = leo_mnesia_utils:write(F1),
+    ok = leo_mnesia:write(F1),
 
     %% READ-1
     F2 = fun() ->
@@ -69,7 +69,7 @@ suite_() ->
                 Q2 = qlc:sort(Q1, [{order, descending}]),
                 qlc:e(Q2)
         end,
-    {ok, [Res1|_]} = leo_mnesia_utils:read(F2),
+    {ok, [Res1|_]} = leo_mnesia:read(F2),
     ?assertEqual(Val0, Res1),
 
     F3 = fun() ->
@@ -78,13 +78,13 @@ suite_() ->
                 Q2 = qlc:sort(Q1, [{order, descending}]),
                 qlc:e(Q2)
         end,
-    not_found = leo_mnesia_utils:read(F3),
+    not_found = leo_mnesia:read(F3),
 
     %% DELETE
     F4 = fun() ->
                 mnesia:delete_object(test_table, Val0, write)
         end,
-    ok = leo_mnesia_utils:delete(F4),
+    ok = leo_mnesia:delete(F4),
 
     %% READ-2
     F5 = fun() ->
@@ -92,7 +92,7 @@ suite_() ->
                 Q2 = qlc:sort(Q1, [{order, descending}]),
                 qlc:e(Q2)
         end,
-    not_found = leo_mnesia_utils:read(F5),
+    not_found = leo_mnesia:read(F5),
     ok.
 
 -endif.

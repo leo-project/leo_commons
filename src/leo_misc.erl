@@ -2,7 +2,7 @@
 %%
 %% Leo Commons
 %%
-%% Copyright (c) 2012 Rakuten, Inc
+%% Copyright (c) 2012 Rakuten, Inc.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -19,27 +19,20 @@
 %% under the License.
 %%
 %% ---------------------------------------------------------------------
-%% Leo Commons - Error Logger Utils
+%% Leo Commons - Miscellaneous
 %% @doc
 %% @end
 %%======================================================================
--module(leo_error_logger_utils).
+-module(leo_misc).
 
 -author('Yosuke Hara').
 
--include_lib("eunit/include/eunit.hrl").
+-export([node_existence/1]).
 
--export([append/5]).
-
-%% @doc Append a log message into the log file
+%% @doc check a node existence.
 %%
--spec(append(error | warn, string(), string(), integer(), string()) ->
-             ok).
-append(Type, ModString, FunString, Line, Message) ->
-    Fun = case Type of
-              error -> error_msg;
-              warn  -> warning_msg
-          end,
+-spec(node_existence(atom()) ->
+             boolean).
+node_existence(Node) ->
+    (net_adm:ping(Node) == pong).
 
-    erlang:apply(error_logger, Fun, ["~p,~p,~p,~p~n", [{module, ModString}, {function, FunString},
-                                                       {line, Line}, {body, Message}]]).
