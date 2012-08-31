@@ -19,42 +19,37 @@
 %% under the License.
 %%
 %% ---------------------------------------------------------------------
-%% Leo Commons - MNESIA Utils.
+%% Leo Commons - Miscellaneous
 %% @doc
 %% @end
 %%======================================================================
--module(leo_mnesia_utils).
+-module(leo_misc).
 
 -author('Yosuke Hara').
 
--include_lib("stdlib/include/qlc.hrl").
+-export([node_existence/1]).
 
--export([read/1, write/1, delete/1]).
-
-read(Fun) ->
-    case catch mnesia:activity(transaction, Fun) of
-        {_, Cause} ->
-            {error, Cause};
-        [] ->
-            not_found;
-        List ->
-            {ok, List}
-    end.
-
-write(Fun) ->
-    case catch mnesia:activity(transaction, Fun) of
-        ok ->
-            ok;
-        {_, Cause} ->
-            {error, Cause}
-    end.
+%% @doc check a node existence.
+%%
+-spec(node_existence(atom()) ->
+             boolean).
+node_existence(Node) ->
+    (net_adm:ping(Node) == pong).
 
 
-delete(Fun) ->
-    case catch mnesia:activity(transaction, Fun) of
-        ok ->
-            ok;
-        {_, Cause} ->
-            {error, Cause}
-    end.
+%% %% @doc
+%% %%
+%% -spec(node_to_part_of_file_name() ->
+%%              string()).
+%% node_to_part_of_file_name() ->
+%%     re:replace(atom_to_list(erlang:node()),"@","_at_",[{return, list}]).
+
+%% %% @doc
+%% %%
+%% -spec(gen_checksum(any()) -> binary()).
+%% gen_checksum(Arg) ->
+%%     CRC32 = erlang:list_to_binary(
+%%               leo_hex:integer_to_hex(erlang:crc32(term_to_binary(Arg)))),
+%%     CRC32.
+
 
