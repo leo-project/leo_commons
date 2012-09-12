@@ -46,6 +46,10 @@ api_test_() ->
      fun get_amz_headers_none_/0,
      fun get_amz_headers_normal1_/0,
      fun get_amz_headers_normal2_/0,
+     fun get_amz_headers4cow_emp_/0,
+     fun get_amz_headers4cow_none_/0,
+     fun get_amz_headers4cow_normal1_/0,
+     fun get_amz_headers4cow_normal2_/0,
      fun rfc1123_date/0,
      fun web_date/0
     ].
@@ -143,5 +147,36 @@ rfc1123_date() ->
 
 web_date() ->
     ?assertEqual("2012-07-04T12:34:56.000Z", leo_http:web_date(63508624496)).
+
+get_amz_headers4cow_emp_() ->
+    ?assertEqual([], leo_http:get_amz_headers4cow([])).
+
+get_amz_headers4cow_none_() ->
+    List = [{"Date", "Tue, 27 Mar 2007 21:15:45 +0000"},
+            {'Host', "johnsmith.s3.amazonaws.com"},
+            {<<"Content-Length">>, 94328},
+            {<<"Content-Type">>, "image/jpeg"}],
+    ?assertEqual([], leo_http:get_amz_headers4cow(List)).
+
+get_amz_headers4cow_normal1_() ->
+    Key = <<"X-Amz-Date">>,
+    Val = <<"Tue, 27 Mar 2007 21:15:45 +0000">>,
+    List = [{"Date", "Tue, 27 Mar 2007 21:15:45 +0000"},
+            {'Host', "johnsmith.s3.amazonaws.com"},
+            {Key, Val}],
+    AmzHeaders = leo_http:get_amz_headers4cow(List),
+    ?assertEqual(1, length(AmzHeaders)),
+    ?assertEqual({binary_to_list(Key), binary_to_list(Val)}, hd(AmzHeaders)).
+
+get_amz_headers4cow_normal2_() ->
+    Key = <<"X-Amz-Date">>,
+    Val = <<"Tue, 27 Mar 2007 21:15:45 +0000">>,
+    Key2 = <<"X-Amz-Meta-ReviewedBy">>,
+    Val2 = <<"jane@johnsmith.net">>,
+    List = [{Key2, Val2},
+            {'Host', "johnsmith.s3.amazonaws.com"},
+            {Key, Val}],
+    AmzHeaders = leo_http:get_amz_headers4cow(List),
+    ?assertEqual(2, length(AmzHeaders)).
 
 -endif.

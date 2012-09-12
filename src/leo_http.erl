@@ -30,6 +30,7 @@
 
 -export([key/2, key/3,
          get_headers/2, get_headers/3, get_amz_headers/1,
+         get_headers4cow/2, get_headers4cow/3, get_amz_headers4cow/1,
          rfc1123_date/1,web_date/1
         ]).
 
@@ -122,6 +123,18 @@ get_headers(Iter, FilterFun, Acc) ->
             end
     end.
 
+get_headers4cow(Headers, FilterFun) when is_function(FilterFun) ->
+    get_headers4cow(Headers, FilterFun, []).
+
+get_headers4cow([], _FilterFun, Acc) ->
+    Acc;
+get_headers4cow([{K, V}|Rest], FilterFun, Acc) when is_binary(K) ->
+    case FilterFun(K) of
+        true ->  get_headers4cow(Rest, FilterFun, [{binary_to_list(K), binary_to_list(V)}|Acc]);
+        false -> get_headers4cow(Rest, FilterFun, Acc)
+    end;
+get_headers4cow([_|Rest], FilterFun, Acc) ->
+    get_headers4cow(Rest, FilterFun, Acc).
 
 %% @doc Retrieve AMZ-S3-related headers
 %%
@@ -130,6 +143,8 @@ get_headers(Iter, FilterFun, Acc) ->
 get_amz_headers(TreeHeaders) ->
     get_headers(TreeHeaders, fun is_amz_header/1).
 
+get_amz_headers4cow(ListHeaders) ->
+    get_headers4cow(ListHeaders, fun is_amz_header/1).
 
 %% @doc Retrieve RFC-1123 formated data
 %%
@@ -153,8 +168,12 @@ web_date(GregSec) when is_integer(GregSec) ->
 %%--------------------------------------------------------------------
 %% @doc Is it AMZ-S3's header?
 %% @private
--spec(is_amz_header(string()) ->
+-spec(is_amz_header(string()|binary()) ->
              boolean()).
+is_amz_header(<<"X-Amz-", _Rest/binary>>) ->
+    true;
+is_amz_header(Key) when is_binary(Key) ->
+    false;
 is_amz_header(Key) ->
     (string:str(string:to_lower(Key), "x-amz-") == 1).
 
