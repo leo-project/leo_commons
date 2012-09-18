@@ -23,13 +23,8 @@
 %%
 %%======================================================================
 -author('Yosuke Hara').
--vsn('0.9.1').
 
-%% records.
-%% -record(directories, {
-%%           log    = "" :: string(),
-%%           mnesia = "" :: string()
-%%          }).
+-define(S3_DEFAULT_ENDPOINT, "s3.amazonaws.com").
 
 -record(cluster_node_status, {
           type                :: gateway | storage,
@@ -59,16 +54,10 @@
             _ -> "log"
         end).
 
--define(env_listening_port(ServerType),
-        case application:get_env(ServerType, port) of
-            {ok, EnvListeningPort} -> EnvListeningPort;
-            _ -> 10010
-        end).
-
--define(env_num_of_acceptors(ServerType),
-        case application:get_env(ServerType, num_of_acceptors) of
-            {ok, EnvNumOfAcceptors} -> EnvNumOfAcceptors;
-            _ -> 3
+-define(env_log_level(ServerType),
+        case application:get_env(ServerType, log_level) of
+            {ok, EnvLogLevel} -> EnvLogLevel;
+            _ -> 0
         end).
 
 -define(env_manager_nodes(ServerType),
@@ -86,12 +75,4 @@
             {ok, EnvQueueDir} -> EnvQueueDir;
             _ -> "queue"
         end).
-
--define(env_log_level(ServerType),
-        case application:get_env(ServerType, log_level) of
-            {ok, EnvLogLevel} -> EnvLogLevel;
-            _ -> 0
-        end).
-
--define(S3_DEFAULT_ENDPOINT, "s3.amazonaws.com").
 

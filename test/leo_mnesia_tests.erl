@@ -25,7 +25,6 @@
 %%====================================================================
 -module(leo_mnesia_tests).
 -author('Yosuke Hara').
--vsn('0.9.1').
 
 -include("leo_commons.hrl").
 -include_lib("stdlib/include/qlc.hrl").

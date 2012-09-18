@@ -25,7 +25,6 @@
 %%====================================================================
 -module(leo_http_tests).
 -author('Yoshiyuki Kanno').
--vsn('0.9.1').
 
 -include("leo_commons.hrl").
 -include_lib("eunit/include/eunit.hrl").
