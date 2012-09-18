@@ -27,7 +27,7 @@
 
 -author('Yosuke Hara').
 
--export([node_existence/1]).
+-export([node_existence/1, get_value/2, get_value/3]).
 
 %% @doc check a node existence.
 %%
@@ -35,4 +35,20 @@
              boolean).
 node_existence(Node) ->
     (net_adm:ping(Node) == pong).
+
+
+%% @doc Retrieve a value from prop-lists
+%%
+-spec(get_value(any(), list(tuple())) ->
+             undefined | any()).
+get_value(Key, Props) ->
+    get_value(Key, Props, undefined).
+
+get_value(Key, Props, Default) ->
+    case lists:keyfind(Key, 1, Props) of
+        false ->
+            Default;
+        Term ->
+            element(2, Term)
+    end.
 
