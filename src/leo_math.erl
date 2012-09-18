@@ -26,7 +26,7 @@
 -module(leo_math).
 
 -author('Yosuke Hara').
--export([power/2, floor/1, ceiling/1, round/2]).
+-export([power/2, floor/1, ceiling/1]).
 
 %%--------------------------------------------------------------------
 %% API
@@ -66,12 +66,4 @@ ceiling(X) ->
         true  -> T;
         false -> T + 1
     end.
-
-
-%% @doc Round value.
-%%
--spec(round(integer(), integer()) ->
-             integer()).
-round(Value, Threshold) ->
-    Value - Threshold * (Value div Threshold).
 
