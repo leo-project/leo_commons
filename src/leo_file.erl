@@ -29,7 +29,9 @@
 -author('Yoshiyuki Kanno').
 
 -export([file_unconsult/2, file_touch/1, file_get_mount_path/1,
-         file_get_remain_disk/1, file_get_total_size/1, file_delete_all/1]).
+         file_get_remain_disk/1, file_get_total_size/1, file_delete_all/1,
+         dsize/1
+        ]).
 
 
 %%--------------------------------------------------------------------
@@ -185,3 +187,16 @@ file_delete_all(Path) ->
             end
     end.
 
+
+%% @doc Retrieve data-size w/unit.
+%% @private
+-define(FILE_KB,       1024).
+-define(FILE_MB,    1048586).
+-define(FILE_GB, 1073741824).
+
+-spec(dsize(integer()) ->
+             string()).
+dsize(Size) when Size =< ?FILE_KB -> integer_to_list(Size) ++ "B";
+dsize(Size) when Size  > ?FILE_KB -> integer_to_list(erlang:round(Size / ?FILE_KB)) ++ "K";
+dsize(Size) when Size  > ?FILE_MB -> integer_to_list(erlang:round(Size / ?FILE_MB)) ++ "M";
+dsize(Size) when Size  > ?FILE_GB -> integer_to_list(erlang:round(Size / ?FILE_GB)) ++ "G".
