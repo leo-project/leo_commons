@@ -48,7 +48,7 @@ get_value(Key, Props, Default) ->
     case lists:keyfind(Key, 1, Props) of
         false ->
             Default;
-        Term ->
-            element(2, Term)
+        {_, Value} ->
+            Value
     end.
 
