@@ -55,58 +55,58 @@ api_test_() ->
 
 key_inc_path_() ->
     Host = ?S3_DEFAULT_ENDPOINT,
-    Path = "/bucket/path_to_file.png",
+    Path = <<"/bucket/path_to_file.png">>,
     Ret = leo_http:key(Host, Path),
-    "/" ++ Expected = Path,
-    ?assertEqual(Expected, Ret).
+
+    Expected = binary:part(Path, {1, byte_size(Path) -1}),
+    ?assertEqual(Expected, Ret),
+    ok.
 
 key_eq_host1_() ->
-    Host = "www.leofs.com",
-    Path = "/images/path_to_file.png",
+    Host = <<"www.leofs.com">>,
+    Path = <<"/images/path_to_file.png">>,
     Ret = leo_http:key(Host, Path),
-    Expected = Host ++ Path,
 
-    ?assertEqual(Expected, Ret).
+    ?assertEqual(<<Host/binary, Path/binary>>, Ret).
 
 key_eq_host2_() ->
-    Host = "www.leofs.com",
-    Path = "/www.leofs.com/path_to_file.png",
+    Host = <<"www.leofs.com">>,
+    Path = <<"/www.leofs.com/path_to_file.png">>,
     Ret = leo_http:key(Host, Path),
-    "/" ++ Expected = Path,
 
+    Expected = binary:part(Path, {1, byte_size(Path) -1}),
     ?assertEqual(Expected, Ret).
 
 key_inc_host1_() ->
-    Bucket = "bucket",
-    Host = Bucket ++ "." ++ ?S3_DEFAULT_ENDPOINT,
-    Path = "/path_to_file.png",
-
+    Bucket = <<"bucket">>,
+    Host   = <<Bucket/binary, <<".">>/binary, ?S3_DEFAULT_ENDPOINT/binary>>,
+    Path = <<"/path_to_file.png">>,
     Ret = leo_http:key(Host, Path),
-    Expected = Bucket ++ Path,
 
-    ?assertEqual(Expected, Ret).
+    ?assertEqual(<<Bucket/binary, Path/binary>>, Ret).
 
 
 key_inc_host2_() ->
-    EndPoint = "leofs.org",
-    Bucket = "bucket",
-    Host = Bucket ++ "." ++ EndPoint,
-    Path = "/path_to_file.png",
+    EndPoint = <<"leofs.org">>,
+    Bucket = <<"bucket">>,
+    Host = <<Bucket/binary, <<".">>/binary, EndPoint/binary>>,
+    Path = <<"/path_to_file.png">>,
+    Ret = leo_http:key([EndPoint, <<"localhost">>], Host, Path),
 
-    Ret = leo_http:key([EndPoint, "localhost"], Host, Path),
-    Expected = Bucket ++ Path,
+    Expected = <<Bucket/binary, Path/binary>>,
     ?assertEqual(Expected, Ret).
 
 
 key_bucket_list_() ->
     Host = ?S3_DEFAULT_ENDPOINT,
-    Path = "/",
+    Path = <<"/">>,
     Ret = leo_http:key(Host, Path),
     ?assertEqual(Path, Ret),
 
-    Path2 = "",
+    Path2 = <<"">>,
     Ret2 = leo_http:key(Host, Path2),
     ?assertEqual(Path, Ret2).
+
 
 get_amz_headers_emp_() ->
     T1 = gb_trees:empty(),

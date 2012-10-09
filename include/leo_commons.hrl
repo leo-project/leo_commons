@@ -24,7 +24,7 @@
 %%======================================================================
 -author('Yosuke Hara').
 
--define(S3_DEFAULT_ENDPOINT, "s3.amazonaws.com").
+-define(S3_DEFAULT_ENDPOINT, <<"s3.amazonaws.com">>).
 
 -record(cluster_node_status, {
           type                :: gateway | storage,
