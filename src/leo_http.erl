@@ -37,71 +37,91 @@
 -include("leo_commons.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
+-define(SLASH, <<"/">>).
+
+
 %% @doc Retrieve a filename(KEY) from Host and Path.
 %%
--spec(key(string(), string()) ->
+-spec(key(binary(), binary()) ->
              string()).
 key(Host, Path) ->
     key([?S3_DEFAULT_ENDPOINT], Host, Path).
 
--spec(key(list(), string(), string()) ->
+-spec(key(list(binary()), binary(), binary()) ->
              string()).
 key(EndPointList, Host, Path) ->
-    EndPoint =
-        case lists:foldl(fun(E, [] = Acc) ->
-                                 case (string:str(Host, E) > 0) of
-                                     true  -> [E|Acc];
-                                     false -> Acc
-                                 end;
-                            (_, Acc) ->
-                                 Acc
-                         end, [], EndPointList) of
-            [] -> [];
-            [Value|_] -> Value
-        end,
+    EndPoint = case lists:foldl(
+                      fun(E, [] = Acc) ->
+                              case binary:match(Host, E) of
+                                  nomatch ->
+                                      Acc;
+                                  {_, _} ->
+                                      [E|Acc]
+                              end;
+                         (_, Acc) ->
+                              Acc
+                      end, [], EndPointList) of
+                   [] ->
+                       [];
+                   [Value|_] ->
+                       Value
+               end,
     key_1(EndPoint, Host, Path).
 
 
 %% @doc Retrieve a filename(KEY) from Host and Path.
 %% @private
 key_1(EndPoint, Host, Path) ->
-    Index = string:str(Host, EndPoint),
+    Index = case EndPoint of
+                [] ->
+                    0;
+                _ ->
+                    case binary:match(Host, EndPoint) of
+                        nomatch ->
+                            0;
+                        {Pos, _} ->
+                            Pos + 1
+                    end
+            end,
     key_2(Index, Host, Path).
 
 
 %% @doc "S3-Bucket" is equal to the host.
 %% @private
 key_2(0, Host, Path) ->
-    case string:tokens(Path, "/") of
-        [] ->
-            Host ++ "/";
-        [Top|_] ->
-            case string:equal(Host, Top) of
-                true ->
-                    "/" ++ Key = Path,
-                    Key;
-                false ->
-                    Key = Host ++ Path,
-                    Key
+    case binary:match(Path, [?SLASH]) of
+        nomatch ->
+            <<Host/binary, ?SLASH/binary>>;
+        _ ->
+            [_, Top|_] = binary:split(Path, [?SLASH], [global]),
+
+            case Top of
+                Host ->
+                    binary:part(Path, {1, byte_size(Path) -1});
+                _ ->
+                    <<Host/binary, Path/binary>>
             end
     end;
 
 %% @doc "S3-Bucket" is included in the path
 %% @private
+key_2(1,_Host, ?SLASH) ->
+    ?SLASH;
+
 key_2(1,_Host, Path) ->
-    case string:tokens(Path, "/") of
-        [] ->
-            "/";
+    case binary:match(Path, [?SLASH]) of
+        nomatch ->
+            ?SLASH;
         _ ->
-            "/" ++ Key = Path,
-            Key
+            binary:part(Path, {1, byte_size(Path) -1})
     end;
 
 %% @doc "S3-Bucket" is included in the host
 %% @private
 key_2(Index, Host, Path) ->
-    Bucket = string:substr(Host, 1, Index - 2),
-    Bucket ++ Path.
+    Bucket = binary:part(Host, {0, Index -2}),
+    <<Bucket/binary, Path/binary>>.
+
 
 
 %% @doc Retrieve AMZ-S3-related headers
