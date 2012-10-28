@@ -33,6 +33,7 @@
 -export([binary_to_hex/1,
          binary_to_integer/1,
          integer_to_hex/1,
+         integer_to_hex/2,
          hex_to_integer/1,
          hex_to_string/1]).
 
@@ -110,6 +111,14 @@ binary_to_integer(<<>>, Acc) -> Acc;
 binary_to_integer(<<X:8, Rest/binary>>, Acc) ->
     binary_to_integer(Rest, Acc * 256 + X).
 
+integer_to_hex(I, Len) ->
+    Hex = erlang:integer_to_list(I, 16),
+    LenDiff = Len - length(Hex),
+    case LenDiff > 0 of
+        true  -> string:chars($0, LenDiff) ++ Hex;
+        false -> Hex
+    end.
+
 %% @doc
 %% Don't use this function.
 %% Instead of this, Do use erlang:integer_to_list(_, 16).
@@ -140,6 +149,12 @@ binary_to_hex_test() ->
     ?assertEqual("00", leo_hex:binary_to_hex(<<0>>)),
     ?assertEqual("FF8040201008", leo_hex:binary_to_hex(<<255,128,64,32,16,8>>)),
     ?assertEqual("FF80402010080102030405", leo_hex:binary_to_hex(<<255,128,64,32,16,8,1,2,3,4,5>>)),
+    ok.
+
+integer_to_hex2_test() ->
+    ?assertEqual("0080", leo_hex:integer_to_hex(128, 4)),
+    ?assertEqual("0F", leo_hex:integer_to_hex(15, 2)),
+    ?assertEqual("0B0BA55CC41ED293AFFE4D526BB3BF44", leo_hex:integer_to_hex(14681977166349835664681235448419565380, 32)),
     ok.
 
 integer_to_hex_test() ->
