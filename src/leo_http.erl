@@ -170,14 +170,11 @@ get_amz_headers4cow(ListHeaders) ->
 %%
 -spec(rfc1123_date(integer()) ->
              string()).
-%%%rfc1123_date(Date) ->
-%%%    httpd_util:rfc1123_date(
-%%%      calendar:universal_time_to_local_time(
-%%%        calendar:gregorian_seconds_to_datetime(Date))).
 rfc1123_date(DateSec) ->
-    %% Don't use http_util:rfc1123 on R14B*. 
-    %% In this func, There is no error handling for `local_time_to_universe` 
-    %% So badmatch could occur. This result in invoking huge context switched.
+    %% NOTE:
+    %%   Don't use http_util:rfc1123 on R14B*.
+    %%   In this func, There is no error handling for `local_time_to_universe`
+    %%   So badmatch could occur. This result in invoking huge context switched.
     {{Y,M,D},{H,MI,S}} = calendar:gregorian_seconds_to_datetime(DateSec),
     Mon = month(M),
     W = weekday(Y,M,D),
