@@ -39,10 +39,11 @@
 
 -define(H(X), (hex(X)):16).
 
-binary_to_hex(Binary) when is_binary (Binary) ->
+binary_to_hex(Binary) when is_binary(Binary) ->
     binary_to_hex(Binary, <<>>).
 
-binary_to_hex(<<>>, Acc) -> erlang:binary_to_list(Acc);
+binary_to_hex(<<>>, Acc) ->
+    string:to_lower(erlang:binary_to_list(Acc));
 binary_to_hex(Bin, Acc) when byte_size(Bin) >= 8 ->
     binary_to_hex_8(Bin, Acc);
 binary_to_hex(Bin, Acc) when byte_size(Bin) >= 4 ->
@@ -112,7 +113,7 @@ binary_to_integer(<<X:8, Rest/binary>>, Acc) ->
     binary_to_integer(Rest, Acc * 256 + X).
 
 integer_to_hex(I, Len) ->
-    Hex = erlang:integer_to_list(I, 16),
+    Hex = string:to_lower(erlang:integer_to_list(I, 16)),
     LenDiff = Len - length(Hex),
     case LenDiff > 0 of
         true  -> string:chars($0, LenDiff) ++ Hex;
@@ -145,16 +146,16 @@ dehex(H) when H >= $0, H =< $9 -> H - $0.
 %% TEST
 %%======================================================================
 binary_to_hex_test() ->
-    ?assertEqual("FF", leo_hex:binary_to_hex(<<255>>)),
+    ?assertEqual("ff", leo_hex:binary_to_hex(<<255>>)),
     ?assertEqual("00", leo_hex:binary_to_hex(<<0>>)),
-    ?assertEqual("FF8040201008", leo_hex:binary_to_hex(<<255,128,64,32,16,8>>)),
-    ?assertEqual("FF80402010080102030405", leo_hex:binary_to_hex(<<255,128,64,32,16,8,1,2,3,4,5>>)),
+    ?assertEqual("ff8040201008", leo_hex:binary_to_hex(<<255,128,64,32,16,8>>)),
+    ?assertEqual("ff80402010080102030405", leo_hex:binary_to_hex(<<255,128,64,32,16,8,1,2,3,4,5>>)),
     ok.
 
 integer_to_hex2_test() ->
     ?assertEqual("0080", leo_hex:integer_to_hex(128, 4)),
-    ?assertEqual("0F", leo_hex:integer_to_hex(15, 2)),
-    ?assertEqual("0B0BA55CC41ED293AFFE4D526BB3BF44", leo_hex:integer_to_hex(14681977166349835664681235448419565380, 32)),
+    ?assertEqual("0f", leo_hex:integer_to_hex(15, 2)),
+    ?assertEqual("0b0ba55cc41ed293affe4d526bb3bf44", leo_hex:integer_to_hex(14681977166349835664681235448419565380, 32)),
     ok.
 
 integer_to_hex_test() ->
