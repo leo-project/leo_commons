@@ -27,7 +27,11 @@
 
 -author('Yosuke Hara').
 
--export([node_existence/1, get_value/2, get_value/3]).
+-export([node_existence/1, get_value/2, get_value/3,
+         binary_tokens/2
+        ]).
+
+-include_lib("eunit/include/eunit.hrl").
 
 %% @doc check a node existence.
 %%
@@ -50,5 +54,32 @@ get_value(Key, Props, Default) ->
             Default;
         {_, Value} ->
             Value
+    end.
+
+
+%% @doc Retrieve tokens from binary-data by delimiter-char
+%%
+-spec(binary_tokens(binary(), binary()) ->
+             list()).
+binary_tokens(Bin, Delimiter) ->
+    binary_tokens(Bin, Delimiter, []).
+
+binary_tokens(<<>>, _, Acc) ->
+    lists:reverse(Acc);
+binary_tokens(Bin0, Delimiter, Acc0) ->
+    case binary:match(Bin0, [Delimiter]) of
+        nomatch ->
+            Acc1 = [Bin0 | Acc0],
+            binary_tokens(<<>>, Delimiter, Acc1);
+        {Pos, _} ->
+            DLen = byte_size(Delimiter),
+            BLen = byte_size(Bin0) - (Pos + DLen),
+            Bin1 = binary:part(Bin0, {Pos + DLen, BLen}),
+
+            Acc1 = case binary:part(Bin0, {0, Pos}) of
+                       <<>> -> Acc0;
+                       Val  -> [Val | Acc0]
+                   end,
+            binary_tokens(Bin1, Delimiter, Acc1)
     end.
 

@@ -35,7 +35,8 @@
 misc_test_() ->
     [
      fun node_existence_/0,
-     fun get_value_/0
+     fun get_value_/0,
+     fun binary_tokens_/0
     ].
 
 
@@ -62,6 +63,19 @@ get_value_() ->
     5 = leo_misc:get_value('e', Props),
     6 = leo_misc:get_value('f', Props, 6),
     undefined = leo_misc:get_value('f', Props),
+    ok.
+
+binary_tokens_() ->
+    ?assertEqual([<<"photo">>,<<"image">>,<<"hawaii-0.jpg">>],
+                 leo_misc:binary_tokens(<<"photo/image/hawaii-0.jpg">>, <<"/">>)),
+    ?assertEqual([<<"photo">>],
+                 leo_misc:binary_tokens(<<"photo/">>, <<"/">>)),
+    ?assertEqual([<<"photo">>],
+                 leo_misc:binary_tokens(<<"/photo/">>, <<"/">>)),
+    ?assertEqual([],
+                 leo_misc:binary_tokens(<<"/">>, <<"/">>)),
+    ?assertEqual([],
+                 leo_misc:binary_tokens(<<>>, <<"/">>)),
     ok.
 
 -endif.
