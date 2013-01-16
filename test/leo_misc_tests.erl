@@ -2,7 +2,7 @@
 %%
 %% Leo Commons
 %%
-%% Copyright (c) 2012
+%% Copyright (c) 2012 Rakuten, Inc.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -18,10 +18,6 @@
 %% specific language governing permissions and limitations
 %% under the License.
 %%
-%% -------------------------------------------------------------------
-%% Mnesia Test
-%% @doc
-%% @end
 %%====================================================================
 -module(leo_misc_tests).
 -author('Yosuke Hara').
@@ -36,7 +32,8 @@ misc_test_() ->
     [
      fun node_existence_/0,
      fun get_value_/0,
-     fun binary_tokens_/0
+     fun binary_tokens_/0,
+     fun env_table_/0
     ].
 
 
@@ -77,6 +74,20 @@ binary_tokens_() ->
     ?assertEqual([],
                  leo_misc:binary_tokens(<<>>, <<"/">>)),
     ok.
+
+
+env_table_() ->
+    AppName = ?MODULE,
+    Key     = "TEST_KEY",
+    Val     = "TEST_VAL",
+
+    ok = leo_misc:init_env(),
+    undefined = leo_misc:get_env(AppName, Key),
+    ok = leo_misc:set_env(AppName, Key, Val),
+    {ok, Val} = leo_misc:get_env(AppName, Key),
+    ok = leo_misc:init_env(),
+    ok.
+
 
 -endif.
 

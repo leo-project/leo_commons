@@ -28,9 +28,11 @@
 -author('Yosuke Hara').
 
 -export([node_existence/1, get_value/2, get_value/3,
-         binary_tokens/2
+         binary_tokens/2,
+         init_env/0, get_env/2, set_env/3
         ]).
 
+-include("leo_commons.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
 %% @doc check a node existence.
@@ -68,4 +70,34 @@ binary_tokens(Bin, Delimiter) ->
         Tokens ->
             Tokens
     end.
+
+
+%% @doc Initialize table of env
+%%
+-spec(init_env() ->
+             ok).
+init_env() ->
+    catch ets:new(?ETS_ENV_TABLE,
+                  [named_table, set, public, {read_concurrency, true}]),
+    ok.
+
+
+%% @doc Retrieve
+%%
+-spec(get_env(atom(), any()) ->
+             {ok, any()} | undefined).
+get_env(AppName, Key) ->
+    case ets:lookup(?ETS_ENV_TABLE, {env, AppName, Key}) of
+        [{_, Val}] ->
+            {ok, Val};
+        _ ->
+            undefined
+    end.
+
+
+-spec(set_env(atom(), any(), any()) ->
+             ok).
+set_env(AppName, Key, Val) ->
+    _ = ets:insert(?ETS_ENV_TABLE, {{env, AppName, Key}, Val}),
+    ok.
 

@@ -47,7 +47,9 @@
          }).
 
 
-%% macros.
+%% Environment values
+-define(ETS_ENV_TABLE, 'leo_env_values').
+
 -define(env_log_dir(ServerType),
         case application:get_env(ServerType, log_dir) of
             {ok, EnvLogDir} -> EnvLogDir;
