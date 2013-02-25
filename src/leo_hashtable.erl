@@ -44,7 +44,7 @@
 %%----------------------------------------------------------------------
 %% APIs
 %%----------------------------------------------------------------------
-%% @doc
+%% @doc Create an instance
 %%
 -spec(new() -> pid() | {error, any()}).
 new() ->
@@ -54,13 +54,13 @@ new() ->
 new(immutable) ->
     spawn(?MODULE, loop, [immutable]).
 
-%% @doc
+%% @doc Destroy an instance
 %%
 -spec(destroy(Hashtble::pid()) -> ok).
 destroy(Hashtable) ->
     exit(Hashtable, destroy).
 
-%% @doc
+%% @doc Retrieve a value by key
 %%
 -spec(get(Hashtable::pid(), K::any()) -> any()).
 get(Hashtable, K) ->
@@ -77,7 +77,7 @@ get(Hashtable, K, UndefinedValue) ->
         Value -> Value
     end.
 
-%% @doc
+%% @doc Insert a value
 %%
 -spec(put(Hashtable::pid(), K::any(), V::any()) -> ok).
 put(Hashtable, K, V) ->
@@ -87,7 +87,7 @@ put(Hashtable, K, V) ->
             Res
     end.
 
-%% @doc
+%% @doc Append a value
 %%
 -spec(append(Hashtable::pid(), K::any(), V::any()) -> ok | {error, any()}).
 append(Hashtable, K, V) ->
@@ -99,7 +99,7 @@ append(Hashtable, K, V) ->
             {error, could_not_store}
     end.
 
-%% @doc
+%% @doc Clear values into the hash-table
 %%
 -spec(clear(Hashtable::pid()) -> ok).
 clear(Hashtable) ->
@@ -112,7 +112,7 @@ clear(Hashtable) ->
                           end, List)
     end.
 
-%% @doc
+%% @doc Remove a value
 %%
 -spec(delete(Hashtable::pid(), K::any()) -> ok).
 delete(Hashtable, K) ->
@@ -122,7 +122,7 @@ delete(Hashtable, K) ->
             Res
     end.
 
-%% @doc
+%% @doc Retrieve all values
 %%
 -spec(all(Hashtable::pid()) -> list()).
 all(Hashtable) ->
@@ -132,7 +132,7 @@ all(Hashtable) ->
             lists:reverse(Res)
     end.
 
-%% @doc
+%% @doc Retrieve all keys
 %%
 -spec(keys(Hashtable::pid()) -> list()).
 keys(Hashtable) ->
@@ -140,7 +140,7 @@ keys(Hashtable) ->
                       X
               end, all(Hashtable)).
 
-%% @doc
+%% @doc Increment a value
 %%
 -spec(incr(Hashtable::pid(), K::any()) -> any()).
 incr(Hashtable, K) ->
@@ -151,6 +151,7 @@ incr(Hashtable, K) ->
 %%----------------------------------------------------------------------
 %% INTERNAL-FUNCTION(S)
 %%----------------------------------------------------------------------
+%% @private
 loop(Type) ->
     receive
         {Pid, get, K} ->
@@ -169,11 +170,7 @@ loop(Type) ->
         {Pid, delete, K} ->
             Pid ! erase(K);
         {Pid, all} ->
-            Pid ! get()            
+            Pid ! get()
     end,
     loop(Type).
-
-%%----------------------------------------------------------------------
-%% TEST
-%%----------------------------------------------------------------------
 

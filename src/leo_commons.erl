@@ -24,10 +24,4 @@
 %% @end
 %%======================================================================
 -module(leo_commons).
-
 -author('Yosuke Hara').
-
--export([vsn/0]).
-
-vsn() ->
-    application:get_key(leo_commons, vsn).

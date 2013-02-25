@@ -33,14 +33,14 @@
 %%--------------------------------------------------------------------
 %% API
 %%--------------------------------------------------------------------
-%% @doc Get the current time. (the number of seconds from year 0 to now)
+%% @doc Retrieve the current time. (the number of seconds from year 0 to now)
 -spec(now() ->
              integer()).
 now() ->
     calendar:datetime_to_gregorian_seconds(calendar:universal_time()).
 
 
-%% @doc
+%% @doc Retrieve current time with unix-time.
 %%
 -spec(clock() ->
              integer()).
@@ -49,7 +49,7 @@ clock() ->
     1000000000000 * H + (S * 1000000 + M).
 
 
-%% @doc
+%% @doc Retrieve current timezone
 %%
 -spec(zone() ->
              string()).
@@ -64,7 +64,7 @@ zone(Val) when Val >= 0 ->
     io_lib:format("+~4..0w", [trunc(abs(Val))]).
 
 
-%% @doc
+%% @doc Format date
 %%
 -spec(date_format(integer()) ->
              string()).
