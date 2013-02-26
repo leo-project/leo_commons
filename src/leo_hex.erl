@@ -39,9 +39,15 @@
 
 -define(H(X), (hex(X)):16).
 
+
+%% @doc Convert from binary to hex
+-spec(binary_to_hex(binary()) ->
+             string()).
 binary_to_hex(Binary) when is_binary(Binary) ->
     binary_to_hex(Binary, <<>>).
 
+-spec(binary_to_hex(binary(), binary()) ->
+             string()).
 binary_to_hex(<<>>, Acc) ->
     string:to_lower(erlang:binary_to_list(Acc));
 binary_to_hex(Bin, Acc) when byte_size(Bin) >= 8 ->
@@ -51,20 +57,24 @@ binary_to_hex(Bin, Acc) when byte_size(Bin) >= 4 ->
 binary_to_hex(<<X:8, Rest/binary>>, Acc) ->
     binary_to_hex(Rest, <<Acc/binary, ?H(X)>>).
 
+%% @private
 binary_to_hex_4(<<A:8, B:8, C:8, D:8, Rest/binary>>, Acc) ->
     binary_to_hex(
       Rest,
       <<Acc/binary,
         ?H(A), ?H(B), ?H(C), ?H(D)>>).
 
+%% @private
 binary_to_hex_8(<<A:8, B:8, C:8, D:8, E:8, F:8, G:8, H:8, Rest/binary>>, Acc) ->
     binary_to_hex(
       Rest,
       <<Acc/binary,
         ?H(A), ?H(B), ?H(C), ?H(D), ?H(E), ?H(F), ?H(G), ?H(H)>>).
 
--compile({inline, [hex/1]}).
 
+-compile({inline, [hex/1]}).
+-spec(hex(integer()) ->
+             integer()).
 hex(X) ->
     element(X + 1,
             {16#3030, 16#3031, 16#3032, 16#3033, 16#3034, 16#3035, 16#3036,
@@ -105,9 +115,14 @@ hex(X) ->
              16#4635, 16#4636, 16#4637, 16#4638, 16#4639, 16#4641, 16#4642,
              16#4643, 16#4644, 16#4645, 16#4646}).
 
+%% @doc Convert from binary to integer
+-spec(binary_to_integer(binary()) ->
+             integer()).
 binary_to_integer(Binary) when is_binary (Binary) ->
     binary_to_integer(Binary, 0).
 
+-spec(binary_to_integer(binary(), binary()) ->
+             integer()).
 binary_to_integer(<<>>, Acc) -> Acc;
 binary_to_integer(<<X:8, Rest/binary>>, Acc) ->
     binary_to_integer(Rest, Acc * 256 + X).
@@ -120,9 +135,9 @@ integer_to_hex(I, Len) ->
         false -> Hex
     end.
 
-%% @doc
-%% Don't use this function.
-%% Instead of this, Do use erlang:integer_to_list(_, 16).
+
+%% @note Don't use this function.
+%%       Instead of this, Do use erlang:integer_to_list(_, 16).
 integer_to_hex(I) when I <  10 -> integer_to_list (I);
 integer_to_hex(I) when I <  16 -> [I - 10 + $a];
 integer_to_hex(I) when I >= 16 -> N = I div 16, integer_to_hex (N) ++ integer_to_hex (I rem 16).
@@ -167,7 +182,10 @@ hex_to_integer_test() ->
     ok.
 
 hex_to_string_test() ->
-    leo_hex:hex_to_string(leo_hex:binary_to_hex(<<255>>)),
+    ?assertEqual("\377", leo_hex:hex_to_string(leo_hex:binary_to_hex(<<255>>))),
     ok.
 
+binary_to_integer_test() ->
+    ?assertEqual(255, leo_hex:binary_to_integer(<<255>>)),
+    ok.
 

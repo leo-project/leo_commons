@@ -31,7 +31,7 @@
 %%--------------------------------------------------------------------
 %% API
 %%--------------------------------------------------------------------
-%% @doc
+%% @doc power value
 %% @end
 -spec(power(integer(), integer()) ->
              integer()).
@@ -40,7 +40,7 @@ power(N, P) when is_integer(N), P >  0 -> N * power(N,  P - 1);
 power(_, _) -> 0.
 
 
-%% @doc floor value.
+%% @doc floor value
 %% @end
 -spec(floor(number()) ->
              integer()).
@@ -54,7 +54,7 @@ floor(X) ->
     trunc(X).
 
 
-%% @doc ceiling value.
+%% @doc ceiling value
 %% @end
 -spec(ceiling(number()) ->
              integer()).

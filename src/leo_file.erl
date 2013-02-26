@@ -37,7 +37,7 @@
 %%--------------------------------------------------------------------
 %% API
 %%--------------------------------------------------------------------
-%% @doc file unconsult
+%% @doc Unconsult a file
 %% @end
 -spec(file_unconsult(string(), any()) ->
              ok | {error, any()}).
@@ -53,7 +53,7 @@ file_unconsult(File, L) ->
     end.
 
 
-%% @doc
+%% @doc Touch a file
 %%
 -spec(file_touch(string()) ->
              ok | {error, any}).
@@ -66,7 +66,7 @@ file_touch(FilePath) ->
     end.
 
 
-%% @doc
+%% @doc Retrieve file mount path(s)
 %%
 -spec(file_get_mount_path(list(), any()) ->
              ok | {error, any()}).
@@ -109,7 +109,7 @@ file_get_mount_path(FilePath) ->
     end.
 
 
-%% @doc
+%% @doc Retrieve remain disk capacity
 %%
 -spec(file_get_remain_disk({string(), integer(), integer()}) ->
              ok | {error, any()}).
@@ -122,7 +122,7 @@ file_get_remain_disk(_Other) ->
     {error, badarg}.
 
 
-%% @doc
+%% @doc Retrieve total of file size
 %%
 -spec(file_get_total_size(string()) ->
              ok | {error, any()}).
@@ -151,7 +151,7 @@ file_get_total_size(Path, Acc) ->
     end.
 
 
-%% @doc
+%% @doc Remove all files
 %%
 -spec(file_delete_all(string()) ->
              ok | {error, any()}).

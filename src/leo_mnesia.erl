@@ -31,6 +31,8 @@
 
 -export([read/1, write/1, delete/1]).
 
+
+%% @doc Retrieve value from mnesia
 read(Fun) ->
     case catch mnesia:activity(transaction, Fun) of
         {_, Cause} ->
@@ -41,6 +43,7 @@ read(Fun) ->
             {ok, List}
     end.
 
+%% @doc Insert value into mnesia
 write(Fun) ->
     case catch mnesia:activity(transaction, Fun) of
         ok ->
@@ -49,7 +52,7 @@ write(Fun) ->
             {error, Cause}
     end.
 
-
+%% @doc Remove value from mnesia
 delete(Fun) ->
     case catch mnesia:activity(transaction, Fun) of
         ok ->
