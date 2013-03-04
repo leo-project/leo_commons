@@ -48,7 +48,7 @@ node_existence_() ->
     net_kernel:stop(),
 
     %% case-2
-    false = leo_misc:node_existence(Node),
+    false = leo_misc:node_existence(Node, 3000),
     ok.
 
 get_value_() ->

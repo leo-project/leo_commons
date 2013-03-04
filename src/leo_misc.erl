@@ -27,7 +27,8 @@
 
 -author('Yosuke Hara').
 
--export([node_existence/1, get_value/2, get_value/3,
+-export([node_existence/1, node_existence/2,
+         get_value/2, get_value/3,
          binary_tokens/2,
          init_env/0, get_env/2, set_env/3
         ]).
@@ -38,9 +39,12 @@
 %% @doc check a node existence.
 %%
 -spec(node_existence(atom()) ->
-             boolean).
+             boolean()).
 node_existence(Node) ->
-    (net_adm:ping(Node) == pong).
+    node_existence(Node, 5000).
+
+node_existence(Node, Timeout) ->
+    (Node == rpc:call(Node, erlang, node, [], Timeout)).
 
 
 %% @doc Retrieve a value from prop-lists
