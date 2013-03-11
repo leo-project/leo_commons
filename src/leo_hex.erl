@@ -31,8 +31,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 -export([binary_to_hex/1,
-         binary_to_integer/1,
-         integer_to_hex/1,
+         raw_binary_to_integer/1,
          integer_to_hex/2,
          hex_to_integer/1,
          hex_to_string/1]).
@@ -116,17 +115,21 @@ hex(X) ->
              16#4643, 16#4644, 16#4645, 16#4646}).
 
 %% @doc Convert from binary to integer
--spec(binary_to_integer(binary()) ->
+-spec(raw_binary_to_integer(binary()) ->
              integer()).
-binary_to_integer(Binary) when is_binary (Binary) ->
-    binary_to_integer(Binary, 0).
+raw_binary_to_integer(Binary) when is_binary (Binary) ->
+    raw_binary_to_integer(Binary, 0).
 
--spec(binary_to_integer(binary(), binary()) ->
+-spec(raw_binary_to_integer(binary(), binary()) ->
              integer()).
-binary_to_integer(<<>>, Acc) -> Acc;
-binary_to_integer(<<X:8, Rest/binary>>, Acc) ->
-    binary_to_integer(Rest, Acc * 256 + X).
+raw_binary_to_integer(<<>>, Acc) -> Acc;
+raw_binary_to_integer(<<X:8, Rest/binary>>, Acc) ->
+    raw_binary_to_integer(Rest, Acc * 256 + X).
 
+
+%% @doc Convert from integer to hex
+-spec(integer_to_hex(integer(), pos_integer()) ->
+             string()).
 integer_to_hex(I, Len) ->
     Hex = string:to_lower(erlang:integer_to_list(I, 16)),
     LenDiff = Len - length(Hex),
@@ -136,12 +139,9 @@ integer_to_hex(I, Len) ->
     end.
 
 
-%% @note Don't use this function.
-%%       Instead of this, Do use erlang:integer_to_list(_, 16).
-integer_to_hex(I) when I <  10 -> integer_to_list (I);
-integer_to_hex(I) when I <  16 -> [I - 10 + $a];
-integer_to_hex(I) when I >= 16 -> N = I div 16, integer_to_hex (N) ++ integer_to_hex (I rem 16).
-
+%% @doc Convert from hex to integer
+-spec(hex_to_integer(string()) ->
+             integer()).
 hex_to_integer(Hex) ->
     lists:foldl (fun (E, Acc) -> Acc * 16 + dehex (E) end, 0, Hex).
 
@@ -152,6 +152,7 @@ hex_to_string(Hex) ->
                                        {[dehex (E) * 16 + LO | Acc], nolow} end, {[], nolow}, Hex),
     String.
 
+%% @private
 dehex(H) when H >= $a, H =< $f -> H - $a + 10;
 dehex(H) when H >= $A, H =< $F -> H - $A + 10;
 dehex(H) when H >= $0, H =< $9 -> H - $0.
@@ -173,10 +174,6 @@ integer_to_hex2_test() ->
     ?assertEqual("0b0ba55cc41ed293affe4d526bb3bf44", leo_hex:integer_to_hex(14681977166349835664681235448419565380, 32)),
     ok.
 
-integer_to_hex_test() ->
-    ?assertEqual("80", leo_hex:integer_to_hex(128)),
-    ok.
-
 hex_to_integer_test() ->
     ?assertEqual(703503, leo_hex:hex_to_integer("abc0f")),
     ok.
@@ -185,7 +182,9 @@ hex_to_string_test() ->
     ?assertEqual("\377", leo_hex:hex_to_string(leo_hex:binary_to_hex(<<255>>))),
     ok.
 
-binary_to_integer_test() ->
-    ?assertEqual(255, leo_hex:binary_to_integer(<<255>>)),
+raw_binary_to_integer_test() ->
+    ?assertEqual(255, leo_hex:raw_binary_to_integer(<<255>>)),
+    ?assertEqual(128, leo_hex:raw_binary_to_integer(<<128>>)),
+    ?assertEqual(0, leo_hex:raw_binary_to_integer(<<0>>)),
     ok.
 
