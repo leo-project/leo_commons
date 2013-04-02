@@ -219,8 +219,8 @@ web_date(GregSec) when is_integer(GregSec) ->
 %% @private
 -spec(is_amz_header(string()|binary()) ->
              boolean()).
-is_amz_header(<<"X-Amz-", _Rest/binary>>) ->
-    true;
+is_amz_header(<<"x-amz-", _Rest/binary>>) -> true;
+is_amz_header(<<"X-Amz-", _Rest/binary>>) -> true;
 is_amz_header(Key) when is_binary(Key) ->
     false;
 is_amz_header(Key) ->
