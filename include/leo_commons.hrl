@@ -72,6 +72,9 @@
                 [NewCHostname]
         end).
 
+-define(update_env_manager_nodes(ServerType, Managers),
+        application:set_env(ServerType, managers, Managers)).
+
 -define(env_queue_dir(ServerType),
         case application:get_env(ServerType, queue_dir) of
             {ok, EnvQueueDir} -> EnvQueueDir;
