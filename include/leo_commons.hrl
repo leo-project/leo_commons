@@ -43,7 +43,9 @@
           r       = 1         :: integer(),
           w       = 1         :: integer(),
           d       = 1         :: integer(),
-          bit_of_ring = 128   :: integer()
+          bit_of_ring = 128   :: integer(),
+          level_1 = 0         :: integer(),
+          level_2 = 0         :: integer()
          }).
 
 
