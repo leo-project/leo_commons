@@ -30,7 +30,7 @@
 -export([node_existence/1, node_existence/2,
          get_value/2, get_value/3,
          binary_tokens/2,
-         init_env/0, get_env/2, set_env/3
+         init_env/0, get_env/2, get_env/3, set_env/3
         ]).
 
 -include("leo_commons.hrl").
@@ -91,11 +91,14 @@ init_env() ->
 -spec(get_env(atom(), any()) ->
              {ok, any()} | undefined).
 get_env(AppName, Key) ->
+    get_env(AppName, Key, undefined).
+
+get_env(AppName, Key, Default) ->
     case ets:lookup(?ETS_ENV_TABLE, {env, AppName, Key}) of
         [{_, Val}] ->
             {ok, Val};
         _ ->
-            undefined
+            Default
     end.
 
 
