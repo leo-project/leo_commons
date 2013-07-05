@@ -39,12 +39,17 @@ guess_mime_test_() ->
     ].
 
 guess_() ->
-    <<"text/plain">> = leo_mime:guess_mime(""),
-    <<"text/plain">> = leo_mime:guess_mime(<<>>),
+    <<"application/octet-stream">> = leo_mime:guess_mime(""),
+    <<"application/octet-stream">> = leo_mime:guess_mime(<<>>),
+    <<"application/octet-stream">> = leo_mime:guess_mime(<<"/path/to/x.unknown">>),
     <<"application/zip">> = leo_mime:guess_mime(<<".zip">>),
     <<"text/html">> = leo_mime:guess_mime(<<"/path/to/x.html">>),
     <<"image/gif">> = leo_mime:guess_mime(<<"images/dir/hoge_hoge.gif">>),
     <<"image/png">> = leo_mime:guess_mime(<<"images/dir/hoge_hoge.png">>),
+    <<"image/jpeg">> = leo_mime:guess_mime(<<"images/dir/hoge_hoge.jpeg">>),
+    <<"image/gif">> = leo_mime:guess_mime(<<"images/dir/hoge_hoge.GIF">>),
+    <<"image/png">> = leo_mime:guess_mime(<<"images/dir/hoge_hoge.PNG">>),
+    <<"image/jpeg">> = leo_mime:guess_mime(<<"images/dir/hoge_hoge.JPG">>),
     ok.
 
 -endif.
