@@ -45,7 +45,7 @@ now() ->
 -spec(clock() ->
              integer()).
 clock() ->
-    {H,S,M} = erlang:now(),
+    {H,S,M} = os:timestamp(),
     1000000000000 * H + (S * 1000000 + M).
 
 
