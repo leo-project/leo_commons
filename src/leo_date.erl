@@ -27,7 +27,8 @@
 
 -author('Yosuke Hara').
 
--export([now/0, clock/0, zone/0, date_format/1, date_format/2]).
+-export([now/0, clock/0, zone/0,
+         date_format/0, date_format/1, date_format/2]).
 
 
 %%--------------------------------------------------------------------
@@ -66,6 +67,18 @@ zone(Val) when Val >= 0 ->
 
 %% @doc Format date
 %%
+date_format() ->
+    Timestamp = os:timestamp(),
+    {_,_,MicroSec} = Timestamp,
+    GregorianSeconds  = calendar:datetime_to_gregorian_seconds(
+                          calendar:now_to_universal_time(Timestamp)),
+
+    {{Year, Month, Date},{Hour,Min,Sec}} =
+        calendar:universal_time_to_local_time(
+          calendar:gregorian_seconds_to_datetime(GregorianSeconds)),
+    io_lib:format("~4..0w-~2..0w-~2..0w ~2..0w:~2..0w:~2..0w.~w ~s",
+                  [Year, Month, Date, Hour, Min, Sec, MicroSec, zone()]).
+
 -spec(date_format(integer()) ->
              string()).
 date_format(GregorianSeconds) ->
@@ -77,13 +90,12 @@ date_format(GregorianSeconds) ->
 
 -spec(date_format(type_of_now, integer()) ->
              string()).
-date_format(type_of_now, Timestamp) ->
-    {_,_,MicroSec} = Timestamp,
-    GregorianSeconds  = calendar:datetime_to_gregorian_seconds(
-                          calendar:now_to_universal_time(Timestamp)),
 
+date_format('utc', GregorianSeconds) ->
     {{Year, Month, Date},{Hour,Min,Sec}} =
-        calendar:universal_time_to_local_time(
-          calendar:gregorian_seconds_to_datetime(GregorianSeconds)),
-    io_lib:format("~4..0w-~2..0w-~2..0w ~2..0w:~2..0w:~2..0w.~w ~s",
-                  [Year, Month, Date, Hour, Min, Sec, MicroSec, zone()]).
+        calendar:gregorian_seconds_to_datetime(GregorianSeconds),
+    io_lib:format("~4..0w-~2..0w-~2..0wT~2..0w:~2..0w:~2..0wZ",
+                  [Year, Month, Date, Hour, Min, Sec]);
+date_format(_, _) ->
+    {error, badargs}.
+
