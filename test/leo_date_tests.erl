@@ -61,9 +61,13 @@ date_format_() ->
     ?assertEqual(true, undefined =/= Ret1),
     ?assertEqual(true, [] =/= Ret1),
 
-    Ret2 = leo_date:date_format(type_of_now, now()),
+    Ret2 = leo_date:date_format(),
     ?assertEqual(true, undefined =/= Ret2),
     ?assertEqual(true, [] =/= Ret2),
+
+    Ret3 = leo_date:date_format('utc', leo_date:now()),
+    ?assertEqual(true, undefined =/= Ret3),
+    ?assertEqual(true, [] =/= Ret3),
     ok.
 
 
