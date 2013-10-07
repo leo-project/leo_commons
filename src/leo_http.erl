@@ -49,22 +49,24 @@ key(Host, Path) ->
 
 -spec(key(list(binary()), binary(), binary()) ->
              string()).
-key(EndPointList, Host, Path) ->
+key(EndPoints, Host, Path) ->
+    EmptyBin = <<>>,
     EndPoint = case lists:foldl(
-                      fun(E, [] = Acc) ->
+                      fun(E, Acc) ->
                               case binary:match(Host, E) of
                                   nomatch ->
                                       Acc;
-                                  {_, _} ->
-                                      [E|Acc]
-                              end;
-                         (_, Acc) ->
-                              Acc
-                      end, [], EndPointList) of
-                   [] ->
+                                  {_,_} ->
+                                      case (byte_size(Acc) < byte_size(E)) of
+                                          true  -> E;
+                                          false -> Acc
+                                      end
+                              end
+                      end, EmptyBin, EndPoints) of
+                   EmptyBin ->
                        [];
-                   [Value|_] ->
-                       Value
+                   Ret ->
+                       Ret
                end,
     key_1(EndPoint, Host, Path).
 
