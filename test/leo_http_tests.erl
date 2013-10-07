@@ -40,6 +40,7 @@ api_test_() ->
      fun key_eq_host2_/0,
      fun key_inc_host1_/0,
      fun key_inc_host2_/0,
+     fun key_inc_host3_/0,
      fun key_bucket_list_/0,
      fun get_amz_headers_emp_/0,
      fun get_amz_headers_none_/0,
@@ -52,6 +53,7 @@ api_test_() ->
      fun rfc1123_date/0,
      fun web_date/0
     ].
+
 
 key_inc_path_() ->
     Host = ?S3_DEFAULT_ENDPOINT,
@@ -79,19 +81,28 @@ key_eq_host2_() ->
 
 key_inc_host1_() ->
     Bucket = <<"bucket">>,
-    Host   = <<Bucket/binary, <<".">>/binary, ?S3_DEFAULT_ENDPOINT/binary>>,
+    Host   = <<Bucket/binary, ".", ?S3_DEFAULT_ENDPOINT/binary>>,
     Path = <<"/path_to_file.png">>,
     Ret = leo_http:key(Host, Path),
 
     ?assertEqual(<<Bucket/binary, Path/binary>>, Ret).
 
-
 key_inc_host2_() ->
     EndPoint = <<"leofs.org">>,
     Bucket = <<"bucket">>,
-    Host = <<Bucket/binary, <<".">>/binary, EndPoint/binary>>,
+    Host = <<Bucket/binary, ".", EndPoint/binary>>,
     Path = <<"/path_to_file.png">>,
     Ret = leo_http:key([EndPoint, <<"localhost">>], Host, Path),
+
+    Expected = <<Bucket/binary, Path/binary>>,
+    ?assertEqual(Expected, Ret).
+
+key_inc_host3_() ->
+    EndPoints = [<<"leofs.org">>, <<"test.leofs.org">>],
+    Bucket = <<"bucket">>,
+    Host = <<Bucket/binary, ".test.leofs.org" >>,
+    Path = <<"/path_to_file.png">>,
+    Ret = leo_http:key(EndPoints, Host, Path),
 
     Expected = <<Bucket/binary, Path/binary>>,
     ?assertEqual(Expected, Ret).
