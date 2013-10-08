@@ -58,24 +58,26 @@ api_test_() ->
 key_inc_path_() ->
     Host = ?S3_DEFAULT_ENDPOINT,
     Path = <<"/bucket/path_to_file.png">>,
-    Ret = leo_http:key(Host, Path),
+    {Bucket, Ret} = leo_http:key(Host, Path),
 
+    ?assertEqual(<<"bucket">>, Bucket),
     Expected = binary:part(Path, {1, byte_size(Path) -1}),
-    ?assertEqual(Expected, Ret),
-    ok.
+    ?assertEqual(Expected, Ret).
 
 key_eq_host1_() ->
     Host = <<"www.leofs.com">>,
     Path = <<"/images/path_to_file.png">>,
-    Ret = leo_http:key(Host, Path),
+    {Bucket, Ret} = leo_http:key(Host, Path),
 
+    ?assertEqual(Host, Bucket),
     ?assertEqual(<<Host/binary, Path/binary>>, Ret).
 
 key_eq_host2_() ->
     Host = <<"www.leofs.com">>,
     Path = <<"/www.leofs.com/path_to_file.png">>,
-    Ret = leo_http:key(Host, Path),
+    {Bucket, Ret} = leo_http:key(Host, Path),
 
+    ?assertEqual(Host, Bucket),
     Expected = binary:part(Path, {1, byte_size(Path) -1}),
     ?assertEqual(Expected, Ret).
 
@@ -83,8 +85,9 @@ key_inc_host1_() ->
     Bucket = <<"bucket">>,
     Host   = <<Bucket/binary, ".", ?S3_DEFAULT_ENDPOINT/binary>>,
     Path = <<"/path_to_file.png">>,
-    Ret = leo_http:key(Host, Path),
+    {Bucket2, Ret} = leo_http:key(Host, Path),
 
+    ?assertEqual(Bucket, Bucket2),
     ?assertEqual(<<Bucket/binary, Path/binary>>, Ret).
 
 key_inc_host2_() ->
@@ -92,8 +95,9 @@ key_inc_host2_() ->
     Bucket = <<"bucket">>,
     Host = <<Bucket/binary, ".", EndPoint/binary>>,
     Path = <<"/path_to_file.png">>,
-    Ret = leo_http:key([EndPoint, <<"localhost">>], Host, Path),
 
+    {Bucket2, Ret} = leo_http:key([EndPoint, <<"localhost">>], Host, Path),
+    ?assertEqual(Bucket, Bucket2),
     Expected = <<Bucket/binary, Path/binary>>,
     ?assertEqual(Expected, Ret).
 
@@ -102,8 +106,9 @@ key_inc_host3_() ->
     Bucket = <<"bucket">>,
     Host = <<Bucket/binary, ".test.leofs.org" >>,
     Path = <<"/path_to_file.png">>,
-    Ret = leo_http:key(EndPoints, Host, Path),
 
+    {Bucket2, Ret} = leo_http:key(EndPoints, Host, Path),
+    ?assertEqual(Bucket, Bucket2),
     Expected = <<Bucket/binary, Path/binary>>,
     ?assertEqual(Expected, Ret).
 
@@ -111,11 +116,13 @@ key_inc_host3_() ->
 key_bucket_list_() ->
     Host = ?S3_DEFAULT_ENDPOINT,
     Path = <<"/">>,
-    Ret = leo_http:key(Host, Path),
+    {Bucket1, Ret} = leo_http:key(Host, Path),
+    ?assertEqual(<<>>, Bucket1),
     ?assertEqual(Path, Ret),
 
     Path2 = <<"">>,
-    Ret2 = leo_http:key(Host, Path2),
+    {Bucket2, Ret2} = leo_http:key(Host, Path2),
+    ?assertEqual(<<>>, Bucket2),
     ?assertEqual(Path, Ret2).
 
 
