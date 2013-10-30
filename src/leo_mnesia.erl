@@ -27,9 +27,12 @@
 
 -author('Yosuke Hara').
 
+-include("leo_commons.hrl").
+-include_lib("eunit/include/eunit.hrl").
 -include_lib("stdlib/include/qlc.hrl").
 
--export([read/1, write/1, delete/1]).
+-export([read/1, write/1, delete/1,
+         export/2, export/3]).
 
 
 %% @doc Retrieve value from mnesia
@@ -61,3 +64,67 @@ delete(Fun) ->
             {error, Cause}
     end.
 
+
+%% @doc Export mnesia's records
+%%
+-spec(export(string(), atom()) ->
+             ok | {error, any()}).
+export(FilePath, Table) ->
+    export(FilePath, Table, ?EXPORT_TYPE_TUPLE).
+
+-spec(export(string(), atom(), export_type()) ->
+             ok | {error, any()}).
+export(FilePath, Table, Type) ->
+    %% open a file
+    {ok, Handler} = file:open(FilePath, [write, append, binary]),
+    Rows = mnesia:table_info(Table, size),
+
+    %% output records
+    mnesia:transaction(
+      fun() ->
+              case catch  mnesia:first(Table) of
+                  '$end_of_table' ->
+                      ok;
+                  {'EXIT', _} ->
+                      ok;
+                  Key ->
+                      Ret = mnesia:read(Table, Key, read),
+                      case output(Handler, Type, Ret) of
+                          ok ->
+                              export_1(Rows - 1, Handler, Table, Type, Key);
+                          Error ->
+                              Error
+                      end
+              end
+      end),
+
+    %% close a file
+    file:close(Handler),
+    ok.
+
+%% @private
+export_1(0,_Handler,_Table,_Type,_Key) ->
+    ok;
+export_1(Rows, Handler, Table, Type, Key) ->
+    case catch mnesia:next(Table, Key) of
+        '$end_of_table' ->
+            ok;
+        {'EXIT', Cause} ->
+            {error, Cause};
+        Key_1 ->
+            Ret = mnesia:read(Table, Key_1, read),
+            case output(Handler, Type, Ret) of
+                ok ->
+                    export_1(Rows - 1, Handler, Table, Type, Key_1);
+                Error ->
+                    Error
+            end
+    end.
+
+
+%% @doc Append a record
+%% @private
+output(Handler, ?EXPORT_TYPE_TUPLE, Ret) ->
+    lists:foreach(fun(X) -> io:format(Handler, "~p.~n",[X]) end, Ret);
+output(_,_,_) ->
+    {error, not_support_type}.

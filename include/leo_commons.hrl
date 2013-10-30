@@ -48,6 +48,11 @@
           level_2 = 0         :: integer()
          }).
 
+%% leo_mneisa:
+-define(EXPORT_TYPE_TUPLE, tuple).
+-define(EXPORT_TYPE_JSON,  json).
+-type(export_type() :: ?EXPORT_TYPE_TUPLE | ?EXPORT_TYPE_JSON).
+
 
 %% Environment values
 -define(ETS_ENV_TABLE, 'leo_env_values').
