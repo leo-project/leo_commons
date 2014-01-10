@@ -29,6 +29,8 @@
 -include("leo_commons.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
+-define(S3_DEFAULT_ENDPOINT, <<"s3.amazonaws.com">>).
+
 %%--------------------------------------------------------------------
 %% TEST
 %%--------------------------------------------------------------------
