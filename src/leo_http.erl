@@ -37,8 +37,10 @@
 -include("leo_commons.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
+-define(S3_DEFAULT_ENDPOINT, <<"s3.amazonaws.com">>).
 -define(SLASH_BIN, <<"/">>).
 -define(EMPYT_BIN, <<>>).
+
 
 %% @doc Retrieve a filename(KEY) from Host and Path.
 %%

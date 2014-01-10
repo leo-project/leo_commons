@@ -24,28 +24,15 @@
 %%======================================================================
 -author('Yosuke Hara').
 
--define(S3_DEFAULT_ENDPOINT, <<"s3.amazonaws.com">>).
-
 -record(cluster_node_status, {
           type                :: gateway | storage,
-          version = ""        :: string(),
+          version = []        :: string(),
           dirs    = []        :: list(),
           avs     = []        :: list(), %% [{dir, # of avs}]
           num_of_read_metas   :: integer(),
           disk_sync_interval  :: integer(),
           ring_checksum       :: string(),
           statistics          :: record()
-         }).
-
--record(system_conf, {
-          version = 0         :: integer(),
-          n       = 1         :: integer(),
-          r       = 1         :: integer(),
-          w       = 1         :: integer(),
-          d       = 1         :: integer(),
-          bit_of_ring = 128   :: integer(),
-          level_1 = 0         :: integer(),
-          level_2 = 0         :: integer()
          }).
 
 %% leo_mneisa:
