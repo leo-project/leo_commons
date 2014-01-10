@@ -2,7 +2,7 @@
 %%
 %% Leo Commons
 %%
-%% Copyright (c) 2012 Rakuten, Inc.
+%% Copyright (c) 2012-2014 Rakuten, Inc.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -162,7 +162,7 @@ file_delete_all(Path) ->
                 {ok, Files} ->
                     lists:foreach(
                       fun(A) ->
-                              file_delete_all(Path ++ A)
+                              file_delete_all(filename:join([Path, A]))
                       end, Files);
                 Error ->
                     throw(Error)

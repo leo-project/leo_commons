@@ -2,7 +2,7 @@
 %%
 %% Leo Commons
 %%
-%% Copyright (c) 2012
+%% Copyright (c) 2012-2014 Rakuten, Inc.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -28,6 +28,8 @@
 
 -include("leo_commons.hrl").
 -include_lib("eunit/include/eunit.hrl").
+
+-define(S3_DEFAULT_ENDPOINT, <<"s3.amazonaws.com">>).
 
 %%--------------------------------------------------------------------
 %% TEST
