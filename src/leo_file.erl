@@ -162,7 +162,7 @@ file_delete_all(Path) ->
                 {ok, Files} ->
                     lists:foreach(
                       fun(A) ->
-                              file_delete_all(Path ++ A)
+                              file_delete_all(filename:join([Path, A]))
                       end, Files);
                 Error ->
                     throw(Error)
