@@ -32,6 +32,7 @@
 
 -export([binary_to_hex/1,
          raw_binary_to_integer/1,
+         integer_to_raw_binary/1,
          integer_to_hex/2,
          hex_to_integer/1,
          hex_to_string/1]).
@@ -126,6 +127,18 @@ raw_binary_to_integer(<<>>, Acc) -> Acc;
 raw_binary_to_integer(<<X:8, Rest/binary>>, Acc) ->
     raw_binary_to_integer(Rest, Acc * 256 + X).
 
+%%% ex. 258 -> <<1, 2>>
+%%% ex. 16909060 -> <<1, 2, 3, 4>>
+-spec(integer_to_raw_binary(integer()) ->
+             binary()).
+integer_to_raw_binary(I) ->
+    integer_to_raw_binary(I, <<>>).
+integer_to_raw_binary(I, Acc) when I < 256 ->
+    <<I:8, Acc/binary>>;
+integer_to_raw_binary(I, Acc) ->
+    Div = I div 256,
+    Rem = I rem 256,
+    integer_to_raw_binary(Div, <<Rem:8, Acc/binary>>).
 
 %% @doc Convert from integer to hex
 -spec(integer_to_hex(integer(), pos_integer()) ->
@@ -188,3 +201,7 @@ raw_binary_to_integer_test() ->
     ?assertEqual(0, leo_hex:raw_binary_to_integer(<<0>>)),
     ok.
 
+integer_to_raw_binary_test() ->
+    ?assertEqual(<<2,7,3,5>>, leo_hex:integer_to_raw_binary(34013957)),
+    ?assertEqual(<<1,2,3,4,5,6,7,8,9,0,1,2,3,4,5>>, leo_hex:integer_to_raw_binary(5233100606242806050944357496980485)),
+    ok.
