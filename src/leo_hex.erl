@@ -32,7 +32,7 @@
 
 -export([binary_to_hex/1,
          raw_binary_to_integer/1,
-         integer_to_raw_binary/1,
+         integer_to_raw_binary/1, integer_to_raw_binary/2,
          integer_to_hex/2,
          hex_to_integer/1,
          hex_to_string/1]).
@@ -132,13 +132,18 @@ raw_binary_to_integer(<<X:8, Rest/binary>>, Acc) ->
 -spec(integer_to_raw_binary(integer()) ->
              binary()).
 integer_to_raw_binary(I) ->
-    integer_to_raw_binary(I, <<>>).
-integer_to_raw_binary(I, Acc) when I < 256 ->
-    <<I:8, Acc/binary>>;
-integer_to_raw_binary(I, Acc) ->
+    integer_to_raw_binary(I, 16, []).
+integer_to_raw_binary(I, Len) ->
+    integer_to_raw_binary(I, Len, []).
+integer_to_raw_binary(I, Len, Acc) when I < 256 ->
+    NewAcc = [I|Acc],
+    ZeroPadding = lists:duplicate(Len - length(NewAcc), 0),
+    NewAcc2 = [ZeroPadding|NewAcc],
+    list_to_binary(NewAcc2);
+integer_to_raw_binary(I, Len, Acc) ->
     Div = I div 256,
     Rem = I rem 256,
-    integer_to_raw_binary(Div, <<Rem:8, Acc/binary>>).
+    integer_to_raw_binary(Div, Len, [Rem|Acc]).
 
 %% @doc Convert from integer to hex
 -spec(integer_to_hex(integer(), pos_integer()) ->
@@ -202,6 +207,7 @@ raw_binary_to_integer_test() ->
     ok.
 
 integer_to_raw_binary_test() ->
-    ?assertEqual(<<2,7,3,5>>, leo_hex:integer_to_raw_binary(34013957)),
-    ?assertEqual(<<1,2,3,4,5,6,7,8,9,0,1,2,3,4,5>>, leo_hex:integer_to_raw_binary(5233100606242806050944357496980485)),
+    ?assertEqual(<<0, 0, 0, 30, 97>>, leo_hex:integer_to_raw_binary(7777, 5)),
+    ?assertEqual(<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,7,3,5>>, leo_hex:integer_to_raw_binary(34013957)),
+    ?assertEqual(<<0, 1,2,3,4,5,6,7,8,9,0,1,2,3,4,5>>, leo_hex:integer_to_raw_binary(5233100606242806050944357496980485)),
     ok.
