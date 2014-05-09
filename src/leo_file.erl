@@ -43,7 +43,7 @@
              ok | {error, any()}).
 file_unconsult(File, L) ->
     try
-        {ok, S} = file:open(File, write),
+        {ok, S} = file:open(File, [write]),
         lists:foreach(fun(X) -> io:format(S, "~p.~n",[X]) end, L),
         file:close(S),
         ok
