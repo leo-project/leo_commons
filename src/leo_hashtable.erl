@@ -56,7 +56,7 @@ new(immutable) ->
 
 %% @doc Destroy an instance
 %%
--spec(destroy(Hashtble::pid()) -> ok).
+-spec(destroy(Hashtble::pid()) -> true).
 destroy(Hashtable) ->
     exit(Hashtable, destroy).
 
