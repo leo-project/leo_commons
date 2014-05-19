@@ -1,3 +1,6 @@
 .eunit/
 deps/
 ebin/
+.leo_commons_dialyzer_plt
+leo_commons.dot
+leo_commons.png

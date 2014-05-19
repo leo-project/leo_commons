@@ -30,7 +30,8 @@
 -export([node_existence/1, node_existence/2,
          get_value/2, get_value/3,
          binary_tokens/2,
-         init_env/0, get_env/2, get_env/3, set_env/3
+         init_env/0, get_env/2, get_env/3, set_env/3,
+         any_to_binary/1
         ]).
 
 -include("leo_commons.hrl").
@@ -108,3 +109,18 @@ set_env(AppName, Key, Val) ->
     _ = ets:insert(?ETS_ENV_TABLE, {{env, AppName, Key}, Val}),
     ok.
 
+
+%% @doc Change datatype to binary
+%%
+-spec(any_to_binary(any()) ->
+             binary()).
+any_to_binary(Item) when is_binary(Item) ->
+    Item;
+any_to_binary(Item) when is_atom(Item) ->
+    list_to_binary(atom_to_list(Item));
+any_to_binary(Item) when is_list(Item) ->
+    list_to_binary(Item);
+any_to_binary(Item) when is_number(Item) ->
+    list_to_binary(integer_to_list(Item));
+any_to_binary(Item) ->
+    term_to_binary(Item).

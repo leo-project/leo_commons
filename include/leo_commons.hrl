@@ -32,7 +32,7 @@
           num_of_read_metas   :: integer(),
           disk_sync_interval  :: integer(),
           ring_checksum       :: string(),
-          statistics          :: record()
+          statistics          :: [any()]
          }).
 
 %% leo_mneisa:

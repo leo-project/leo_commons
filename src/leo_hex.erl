@@ -121,7 +121,7 @@ hex(X) ->
 raw_binary_to_integer(Binary) when is_binary (Binary) ->
     raw_binary_to_integer(Binary, 0).
 
--spec(raw_binary_to_integer(binary(), binary()) ->
+-spec(raw_binary_to_integer(binary(), integer()) ->
              integer()).
 raw_binary_to_integer(<<>>, Acc) -> Acc;
 raw_binary_to_integer(<<X:8, Rest/binary>>, Acc) ->
