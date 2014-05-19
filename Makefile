@@ -1,7 +1,7 @@
 .PHONY: deps test
 
 REBAR := ./rebar
-APPS = erts kernel stdlib sasl
+APPS = erts kernel stdlib sasl compiler crypto mnesia os_mon
 PLT_FILE = .leo_commons_dialyzer_plt
 DOT_FILE = leo_commons.dot
 CALL_GRAPH_FILE = leo_commons.png
@@ -26,7 +26,7 @@ build_plt:
 	dialyzer --build_plt --output_plt $(PLT_FILE) --apps $(APPS)
 dialyzer:
 	@$(REBAR) compile
-	dialyzer --plt $(PLT_FILE) --dump_callgraph $(DOT_FILE) -r src/ --src
+	dialyzer --plt $(PLT_FILE) --dump_callgraph $(DOT_FILE) ebin/ 
 doc: compile
 	@$(REBAR) doc
 callgraph: graphviz
@@ -38,6 +38,3 @@ clean:
 distclean:
 	@$(REBAR) delete-deps
 	@$(REBAR) clean
-qc:
-	@$(REBAR) qc skip_deps=true
-
