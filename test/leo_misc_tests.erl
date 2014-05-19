@@ -33,7 +33,8 @@ misc_test_() ->
      fun node_existence_/0,
      fun get_value_/0,
      fun binary_tokens_/0,
-     fun env_table_/0
+     fun env_table_/0,
+     fun any_to_binary_/0
     ].
 
 
@@ -86,6 +87,18 @@ env_table_() ->
     ok = leo_misc:set_env(AppName, Key, Val),
     {ok, Val} = leo_misc:get_env(AppName, Key),
     ok = leo_misc:init_env(),
+    ok.
+
+any_to_binary_() ->
+    Bin = <<"leo_commons">>,
+    Tuple = {"leo","commons"},
+    TupleBin = term_to_binary(Tuple),
+    ?assertEqual(Bin, leo_misc:any_to_binary(Bin)),
+    ?assertEqual(Bin, leo_misc:any_to_binary("leo_commons")),
+    ?assertEqual(Bin, leo_misc:any_to_binary('leo_commons')),
+    ?assertEqual(<<"05678">>, leo_misc:any_to_binary("05678")),
+    ?assertEqual(<<"5678">>,  leo_misc:any_to_binary(05678)),
+    ?assertEqual(TupleBin,    leo_misc:any_to_binary(Tuple)),
     ok.
 
 
