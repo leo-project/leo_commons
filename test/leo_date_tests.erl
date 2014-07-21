@@ -38,7 +38,7 @@ date_test_() ->
      fun clock_/0,
      fun zone_/0,
      fun date_format_/0,
-     fun greg_seconds_from_unixtime_/0
+     fun unixtime_to_greg_seconds_/0
     ].
 
 now_() ->
@@ -71,9 +71,10 @@ date_format_() ->
     ?assertEqual(true, [] =/= Ret3),
     ok.
 
-greg_seconds_from_unixtime_() ->
+
+unixtime_to_greg_seconds_() ->
     UnixTime = leo_date:unixtime(),
-    GregSec  = leo_date:greg_seconds_from_unixtime(UnixTime),
+    GregSec  = leo_date:unixtime_to_greg_seconds(UnixTime),
     ?assertEqual(true, 0 < GregSec),
     ok.
     

@@ -29,7 +29,7 @@
 
 -export([now/0, clock/0, zone/0,
          date_format/0, date_format/1, date_format/2,
-         unixtime/0, greg_seconds_from_unixtime/1
+         unixtime/0, unixtime_to_greg_seconds/1
         ]).
 
 
@@ -109,11 +109,11 @@ unixtime() ->
     {M, S, _} = os:timestamp(),
     (M * 1000000) + S.
 
-%% Retrieve gregorian seconds from unixtime
+%% Convert data from a unixtime to a gregorian seconds
 %%
--spec(greg_seconds_from_unixtime(pos_integer()) ->
+-spec(unixtime_to_greg_seconds(pos_integer()) ->
              pos_integer()).
-greg_seconds_from_unixtime(UnixTime) ->
+unixtime_to_greg_seconds(UnixTime) ->
     M = leo_math:floor(UnixTime / 1000000),
     S = (UnixTime - M * 1000000),
     calendar:datetime_to_gregorian_seconds(
