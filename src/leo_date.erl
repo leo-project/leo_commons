@@ -29,7 +29,8 @@
 
 -export([now/0, clock/0, zone/0,
          date_format/0, date_format/1, date_format/2,
-         unixtime/0, unixtime_to_greg_seconds/1
+         unixtime/0, unixtime_to_greg_seconds/1,
+         greg_seconds_to_unixtime/1
         ]).
 
 
@@ -118,3 +119,13 @@ unixtime_to_greg_seconds(UnixTime) ->
     S = (UnixTime - M * 1000000),
     calendar:datetime_to_gregorian_seconds(
       calendar:now_to_universal_time({M,S,0})).
+
+
+%% Convert data from a gregorian seconds to a unixtime
+%%
+-spec(greg_seconds_to_unixtime(pos_integer()) ->
+             pos_integer()).
+greg_seconds_to_unixtime(GregorianSeconds) ->
+    BaseSeconds =
+        calendar:datetime_to_gregorian_seconds({{1970,1,1},{0,0,0}}),
+    GregorianSeconds - BaseSeconds.
