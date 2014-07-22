@@ -28,7 +28,10 @@
 -author('Yosuke Hara').
 
 -export([now/0, clock/0, zone/0,
-         date_format/0, date_format/1, date_format/2]).
+         date_format/0, date_format/1, date_format/2,
+         unixtime/0, unixtime_to_greg_seconds/1,
+         greg_seconds_to_unixtime/1
+        ]).
 
 
 %%--------------------------------------------------------------------
@@ -88,9 +91,8 @@ date_format(GregorianSeconds) ->
     io_lib:format("~4..0w-~2..0w-~2..0w ~2..0w:~2..0w:~2..0w ~s",
                   [Year, Month, Date, Hour, Min, Sec, zone()]).
 
--spec(date_format(type_of_now, integer()) ->
+-spec(date_format('utc', integer()) ->
              string()).
-
 date_format('utc', GregorianSeconds) ->
     {{Year, Month, Date},{Hour,Min,Sec}} =
         calendar:gregorian_seconds_to_datetime(GregorianSeconds),
@@ -99,3 +101,31 @@ date_format('utc', GregorianSeconds) ->
 date_format(_, _) ->
     {error, badargs}.
 
+
+%% Retrieve unixtime
+%%
+-spec(unixtime() ->
+             pos_integer()).
+unixtime() ->
+    {M, S, _} = os:timestamp(),
+    (M * 1000000) + S.
+
+%% Convert data from a unixtime to a gregorian seconds
+%%
+-spec(unixtime_to_greg_seconds(pos_integer()) ->
+             pos_integer()).
+unixtime_to_greg_seconds(UnixTime) ->
+    M = leo_math:floor(UnixTime / 1000000),
+    S = (UnixTime - M * 1000000),
+    calendar:datetime_to_gregorian_seconds(
+      calendar:now_to_universal_time({M,S,0})).
+
+
+%% Convert data from a gregorian seconds to a unixtime
+%%
+-spec(greg_seconds_to_unixtime(pos_integer()) ->
+             pos_integer()).
+greg_seconds_to_unixtime(GregorianSeconds) ->
+    BaseSeconds =
+        calendar:datetime_to_gregorian_seconds({{1970,1,1},{0,0,0}}),
+    GregorianSeconds - BaseSeconds.
