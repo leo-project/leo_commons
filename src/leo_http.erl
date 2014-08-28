@@ -31,7 +31,7 @@
 -export([key/2, key/3,
          get_headers/2, get_headers/3, get_amz_headers/1,
          get_headers4cow/2, get_headers4cow/3, get_amz_headers4cow/1,
-         rfc1123_date/1,web_date/1
+         rfc1123_date/1,web_date/1,urlencode/2
         ]).
 
 -include("leo_commons.hrl").
@@ -257,4 +257,44 @@ month( 9) -> "Sep";
 month(10) -> "Oct";
 month(11) -> "Nov";
 month(12) -> "Dec".
+
+%% @doc URL encode a string binary.
+%% The `noplus' option disables the default behaviour of quoting space
+%% characters, `\s', as `+'. The `upper' option overrides the default behaviour
+%% of writing hex numbers using lowecase letters to using uppercase letters
+%% instead.
+-spec urlencode(binary(), [noplus|upper|noslash]) -> binary().
+urlencode(Bin, Opts) ->
+        Plus = not lists:member(noplus, Opts),
+        Upper = lists:member(upper, Opts),
+        Slash = not lists:member(noslash, Opts),
+        urlencode(Bin, <<>>, Plus, Upper, Slash).
+
+-spec urlencode(binary(), binary(), boolean(), boolean(), boolean()) -> binary().
+urlencode(<<C, Rest/binary>>, Acc, P=Plus, U=Upper, S=Slash) ->
+        if      C >= $0, C =< $9 -> urlencode(Rest, <<Acc/binary, C>>, P, U, S);
+                C >= $A, C =< $Z -> urlencode(Rest, <<Acc/binary, C>>, P, U, S);
+                C >= $a, C =< $z -> urlencode(Rest, <<Acc/binary, C>>, P, U, S);
+                C =:= $.; C =:= $-; C =:= $~; C =:= $_ ->
+                urlencode(Rest, <<Acc/binary, C>>, P, U, S);
+                C =:= $/ , not Slash ->
+                urlencode(Rest, <<Acc/binary, $/>>, P, U, S);
+                C =:= $ , Plus ->
+                urlencode(Rest, <<Acc/binary, $+>>, P, U, S);
+                true ->
+                H = C band 16#F0 bsr 4, L = C band 16#0F,
+                H1 = if Upper -> tohexu(H); true -> tohexl(H) end,
+                L1 = if Upper -> tohexu(L); true -> tohexl(L) end,
+                urlencode(Rest, <<Acc/binary, $%, H1, L1>>, P, U, S)
+        end;
+urlencode(<<>>, Acc, _Plus, _Upper, _Slash) ->
+        Acc.
+
+-spec tohexu(byte()) -> byte().
+tohexu(C) when C < 10 -> $0 + C;
+tohexu(C) when C < 17 -> $A + C - 10.
+
+-spec tohexl(byte()) -> byte().
+tohexl(C) when C < 10 -> $0 + C;
+tohexl(C) when C < 17 -> $a + C - 10.
 

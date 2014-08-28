@@ -53,6 +53,7 @@ api_test_() ->
      fun get_amz_headers4cow_normal1_/0,
      fun get_amz_headers4cow_normal2_/0,
      fun rfc1123_date/0,
+     fun urlencode_/0,
      fun web_date/0
     ].
 
@@ -197,5 +198,19 @@ get_amz_headers4cow_normal2_() ->
             {Key, Val}],
     AmzHeaders = leo_http:get_amz_headers4cow(List),
     ?assertEqual(2, length(AmzHeaders)).
+
+urlencode_() ->
+    Tests = [
+        {<<255,0>>, [], <<"%ff%00">>},
+        {<<255,0>>, [upper], <<"%FF%00">>},
+        {<<" ">>, [], <<"+">>},
+        {<<" ">>, [noplus], <<"%20">>},
+        {<<"/leo commons.erl">>, [noslash], <<"/leo+commons.erl">>},
+        {<<"/leo commons.erl">>, [noslash, noplus], <<"/leo%20commons.erl">>},
+        {<<"aBc">>, [], <<"aBc">>},
+        {<<".-~_">>, [], <<".-~_">>}
+    ],   
+    [ R = leo_http:urlencode(V, O) || {V, O, R} <- Tests],
+    ok.
 
 -endif.
