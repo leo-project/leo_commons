@@ -31,7 +31,7 @@
 -export([key/2, key/3,
          get_headers/2, get_headers/3, get_amz_headers/1,
          get_headers4cow/2, get_headers4cow/3, get_amz_headers4cow/1,
-         rfc1123_date/1,web_date/1
+         rfc1123_date/1, web_date/1, url_encode/2
         ]).
 
 -include("leo_commons.hrl").
@@ -257,4 +257,56 @@ month( 9) -> "Sep";
 month(10) -> "Oct";
 month(11) -> "Nov";
 month(12) -> "Dec".
+
+%% @doc URL encode a string binary.
+%% The `noplus' option disables the default behaviour of quoting space
+%% characters, `\s', as `+'. The `upper' option overrides the default behaviour
+%% of writing hex numbers using lowecase letters to using uppercase letters
+%% instead.
+-spec url_encode(binary(), [noplus|upper|noslash]) -> binary().
+url_encode(Bin, Opts) ->
+    Plus = not lists:member(noplus, Opts),
+    Upper = lists:member(upper, Opts),
+    Slash = not lists:member(noslash, Opts),
+    url_encode(Bin, <<>>, Plus, Upper, Slash).
+
+-spec url_encode(binary(), binary(), boolean(), boolean(), boolean()) -> binary().
+url_encode(<<C, Rest/binary>>, Acc, P=Plus, U=Upper, S=Slash) ->
+    if C >= $0,
+       C =< $9 ->
+            url_encode(Rest, <<Acc/binary, C>>, P, U, S);
+       C >= $A,
+       C =< $Z ->
+            url_encode(Rest, <<Acc/binary, C>>, P, U, S);
+       C >= $a,
+       C =< $z ->
+            url_encode(Rest, <<Acc/binary, C>>, P, U, S);
+       C =:= $.;
+       C =:= $-;
+       C =:= $~;
+       C =:= $_ ->
+            url_encode(Rest, <<Acc/binary, C>>, P, U, S);
+
+       C =:= $/ , not Slash ->
+            url_encode(Rest, <<Acc/binary, $/>>, P, U, S);
+       C =:= $ , Plus ->
+            url_encode(Rest, <<Acc/binary, $+>>, P, U, S);
+
+       true ->
+            H = C band 16#F0 bsr 4,
+            L = C band 16#0F,
+            H1 = if Upper -> to_hexu(H); true -> to_hexl(H) end,
+            L1 = if Upper -> to_hexu(L); true -> to_hexl(L) end,
+            url_encode(Rest, <<Acc/binary, $%, H1, L1>>, P, U, S)
+    end;
+url_encode(<<>>, Acc, _Plus, _Upper, _Slash) ->
+    Acc.
+
+-spec to_hexu(byte()) -> byte().
+to_hexu(C) when C < 10 -> $0 + C;
+to_hexu(C) when C < 17 -> $A + C - 10.
+
+-spec to_hexl(byte()) -> byte().
+to_hexl(C) when C < 10 -> $0 + C;
+to_hexl(C) when C < 17 -> $a + C - 10.
 
