@@ -22,6 +22,7 @@
 %% Leo Commons - MNESIA Utils.
 %%
 %% @doc leo_mnesia is utilities for mnesia operation
+%% @reference [https://github.com/leo-project/leo_commons/blob/master/src/leo_mnesia.erl]
 %% @end
 %%======================================================================
 -module(leo_mnesia).

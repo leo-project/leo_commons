@@ -22,6 +22,7 @@
 %% leo_http  - Utils for HTTP/S3-API
 %%
 %% @doc leo_http is utilities for HTTP and S3-API
+%% @reference [https://github.com/leo-project/leo_commons/blob/master/src/leo_http.erl]
 %% @end
 %%======================================================================
 -module(leo_http).

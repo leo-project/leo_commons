@@ -22,6 +22,7 @@
 %% Leo Commons - Miscellaneous
 %%
 %% @doc leo_misc is miscellaneous utilities
+%% @reference [https://github.com/leo-project/leo_commons/blob/master/src/leo_misc.erl]
 %% @end
 %%======================================================================
 -module(leo_misc).

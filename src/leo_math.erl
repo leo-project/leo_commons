@@ -22,6 +22,7 @@
 %% Leo Commons - Utils
 %%
 %% @doc leo_math is utilities for calculation
+%% @reference [https://github.com/leo-project/leo_commons/blob/master/src/leo_math.erl]
 %% @end
 %%======================================================================
 -module(leo_math).
