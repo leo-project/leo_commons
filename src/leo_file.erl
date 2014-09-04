@@ -20,7 +20,8 @@
 %%
 %% ---------------------------------------------------------------------
 %% Leo Commons - Utils
-%% @doc
+%%
+%% @doc leo_file is utilities for file processing
 %% @end
 %%======================================================================
 -module(leo_file).
@@ -33,18 +34,18 @@
          dsize/1
         ]).
 
-
 %%--------------------------------------------------------------------
 %% API
 %%--------------------------------------------------------------------
-%% @doc Unconsult a file
-%% @end
--spec(file_unconsult(string(), any()) ->
-             ok | {error, any()}).
-file_unconsult(File, L) ->
+%% @doc Unconsult the file
+%%
+-spec(file_unconsult(FilePath, Term) ->
+             ok | {error, any()} when FilePath ::string(),
+                                      Term::any()).
+file_unconsult(FilePath, Term) ->
     try
-        {ok, S} = file:open(File, [write]),
-        lists:foreach(fun(X) -> io:format(S, "~p.~n",[X]) end, L),
+        {ok, S} = file:open(FilePath, [write]),
+        lists:foreach(fun(X) -> io:format(S, "~p.~n",[X]) end, Term),
         file:close(S),
         ok
     catch
@@ -55,8 +56,8 @@ file_unconsult(File, L) ->
 
 %% @doc Touch a file
 %%
--spec(file_touch(string()) ->
-             ok | {error, any}).
+-spec(file_touch(FilePath) ->
+             ok | {error, any} when FilePath::string()).
 file_touch(FilePath) ->
     case file:open(FilePath, [raw, write, binary]) of
         {ok, FileHandler} ->
@@ -68,8 +69,9 @@ file_touch(FilePath) ->
 
 %% @doc Retrieve file mount path(s)
 %%
--spec(file_get_mount_path(list(), any()) ->
-             ok | {error, any()}).
+-spec(file_get_mount_path(List, DiskData) ->
+             ok | {error, any()} when List::[string()],
+                                      DiskData::any()).
 file_get_mount_path([], _DiskData) ->
     {error, "not avaivale"};
 file_get_mount_path([_H|Rest], DiskData) ->
@@ -96,8 +98,10 @@ file_get_mount_path([_H|Rest], DiskData) ->
             {ok, MountPath}
     end.
 
--spec(file_get_mount_path(string()) ->
-             ok | {error, any()}).
+%% @doc Retrieve file mount path(s)
+%%
+-spec(file_get_mount_path(FilePath) ->
+             ok | {error, any()} when FilePath::string()).
 file_get_mount_path(FilePath) ->
     case disksup:get_disk_data() of
         [{"none",0,0}] ->
@@ -109,10 +113,12 @@ file_get_mount_path(FilePath) ->
     end.
 
 
-%% @doc Retrieve remain disk capacity
+%% @doc Retrieve remain disk capacity of the target
 %%
--spec(file_get_remain_disk({string(), integer(), integer()}) ->
-             ok | {error, any()}).
+-spec(file_get_remain_disk(Params) ->
+             ok | {error, any()} when Params::{FilePath::string(),
+                                               SizeKB::non_neg_integer(),
+                                               Rate::non_neg_integer()}).
 file_get_remain_disk({_Path, SizeKB, Rate}) when is_integer(SizeKB),
                                                  is_integer(Rate),
                                                  Rate >= 0, Rate =< 100 ->
@@ -122,10 +128,10 @@ file_get_remain_disk(_Other) ->
     {error, badarg}.
 
 
-%% @doc Retrieve total of file size
+%% @doc Retrieve total of the file size
 %%
--spec(file_get_total_size(string()) ->
-             ok | {error, any()}).
+-spec(file_get_total_size(Path) ->
+             ok | {error, any()} when Path::string()).
 file_get_total_size(Path) ->
     file_get_total_size(Path, 0).
 file_get_total_size(Path, Acc) ->
@@ -151,32 +157,32 @@ file_get_total_size(Path, Acc) ->
     end.
 
 
-%% @doc Remove all files
+%% @doc Remove all files of the target
 %%
--spec(file_delete_all(string()) ->
-             ok | {error, any()}).
-file_delete_all(Path) ->
-    case filelib:is_dir(Path) of
+-spec(file_delete_all(FilePath) ->
+             ok | {error, any()} when FilePath::string()).
+file_delete_all(FilePath) ->
+    case filelib:is_dir(FilePath) of
         true ->
-            case file:list_dir(Path) of
+            case file:list_dir(FilePath) of
                 {ok, Files} ->
                     lists:foreach(
                       fun(A) ->
-                              file_delete_all(filename:join([Path, A]))
+                              file_delete_all(filename:join([FilePath, A]))
                       end, Files);
                 Error ->
                     throw(Error)
             end,
-            case file:del_dir(Path) of
+            case file:del_dir(FilePath) of
                 ok ->
                     ok;
                 ErrorDel ->
                     throw(ErrorDel)
             end;
         false ->
-            case filelib:is_regular(Path) of
+            case filelib:is_regular(FilePath) of
                 true ->
-                    case file:delete(Path) of
+                    case file:delete(FilePath) of
                         ok ->
                             ok;
                         Error ->

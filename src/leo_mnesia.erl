@@ -20,7 +20,8 @@
 %%
 %% ---------------------------------------------------------------------
 %% Leo Commons - MNESIA Utils.
-%% @doc
+%%
+%% @doc leo_mnesia is utilities for mnesia operation
 %% @end
 %%======================================================================
 -module(leo_mnesia).
@@ -35,7 +36,10 @@
          export/2, export/3]).
 
 
-%% @doc Retrieve value from mnesia
+%% @doc Retrieve a value from mnesia
+-spec(read(Fun) ->
+             {ok, [any()]} | not_found | {error, any()}
+                 when Fun::function()).
 read(Fun) ->
     case catch mnesia:activity(transaction, Fun) of
         {_, Cause} ->
@@ -46,7 +50,11 @@ read(Fun) ->
             {ok, List}
     end.
 
-%% @doc Insert value into mnesia
+
+%% @doc Insert a value into mnesia
+-spec(write(Fun) ->
+             ok | {error, any()}
+                 when Fun::function()).
 write(Fun) ->
     case catch mnesia:activity(transaction, Fun) of
         ok ->
@@ -55,7 +63,11 @@ write(Fun) ->
             {error, Cause}
     end.
 
-%% @doc Remove value from mnesia
+
+%% @doc Remove a value from mnesia
+-spec(delete(Fun) ->
+             ok | {error, any()}
+                 when Fun::function()).
 delete(Fun) ->
     case catch mnesia:activity(transaction, Fun) of
         ok ->
@@ -67,14 +79,20 @@ delete(Fun) ->
 
 %% @doc Export mnesia's records
 %%
--spec(export(string(), atom()) ->
-             ok | {error, any()}).
+-spec(export(FilePath, Table) ->
+             ok | {error, any()} when FilePath::string(),
+                                      Table::atom()).
 export(FilePath, Table) ->
     export(FilePath, Table, ?EXPORT_TYPE_TUPLE).
 
--spec(export(string(), atom(), export_type()) ->
-             ok | {error, any()}).
-export(FilePath, Table, Type) ->
+
+%% @doc Export mnesia's records
+%%
+-spec(export(FilePath, Table, ExportType) ->
+             ok | {error, any()} when FilePath::string(),
+                                      Table::atom(),
+                                      ExportType::export_type()).
+export(FilePath, Table, ExportType) ->
     %% open a file
     {ok, Handler} = file:open(FilePath, [write, append, binary]),
     Rows = mnesia:table_info(Table, size),
@@ -89,23 +107,22 @@ export(FilePath, Table, Type) ->
                       ok;
                   Key ->
                       Ret = mnesia:read(Table, Key, read),
-                      case output(Handler, Type, Ret) of
+                      case output(Handler, ExportType, Ret) of
                           ok ->
-                              export_1(Rows - 1, Handler, Table, Type, Key);
+                              export_1(Rows - 1, Handler, Table, ExportType, Key);
                           Error ->
                               Error
                       end
               end
       end),
-
     %% close a file
     file:close(Handler),
     ok.
 
 %% @private
-export_1(0,_Handler,_Table,_Type,_Key) ->
+export_1(0,_Handler,_Table,_ExportType,_Key) ->
     ok;
-export_1(Rows, Handler, Table, Type, Key) ->
+export_1(Rows, Handler, Table, ExportType, Key) ->
     case catch mnesia:next(Table, Key) of
         '$end_of_table' ->
             ok;
@@ -113,9 +130,9 @@ export_1(Rows, Handler, Table, Type, Key) ->
             {error, Cause};
         Key_1 ->
             Ret = mnesia:read(Table, Key_1, read),
-            case output(Handler, Type, Ret) of
+            case output(Handler, ExportType, Ret) of
                 ok ->
-                    export_1(Rows - 1, Handler, Table, Type, Key_1);
+                    export_1(Rows - 1, Handler, Table, ExportType, Key_1);
                 Error ->
                     Error
             end

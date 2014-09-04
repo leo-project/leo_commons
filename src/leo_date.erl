@@ -20,7 +20,8 @@
 %%
 %% ---------------------------------------------------------------------
 %% Leo Commons - Utils
-%% @doc
+%%
+%% @doc leo_date is utilities for date processing
 %% @end
 %%======================================================================
 -module(leo_date).
@@ -82,8 +83,10 @@ date_format() ->
     io_lib:format("~4..0w-~2..0w-~2..0w ~2..0w:~2..0w:~2..0w.~w ~s",
                   [Year, Month, Date, Hour, Min, Sec, MicroSec, zone()]).
 
--spec(date_format(integer()) ->
-             string()).
+%% @doc Format date
+%%
+-spec(date_format(GregorianSeconds) ->
+             string() when GregorianSeconds::pos_integer()).
 date_format(GregorianSeconds) ->
     {{Year, Month, Date},{Hour,Min,Sec}} =
         calendar:universal_time_to_local_time(
@@ -91,8 +94,11 @@ date_format(GregorianSeconds) ->
     io_lib:format("~4..0w-~2..0w-~2..0w ~2..0w:~2..0w:~2..0w ~s",
                   [Year, Month, Date, Hour, Min, Sec, zone()]).
 
--spec(date_format('utc', integer()) ->
-             string()).
+%% @doc Format date
+%%
+-spec(date_format(Zone, GregorianSeconds) ->
+             string() when Zone::'utc',
+                           GregorianSeconds::pos_integer()).
 date_format('utc', GregorianSeconds) ->
     {{Year, Month, Date},{Hour,Min,Sec}} =
         calendar:gregorian_seconds_to_datetime(GregorianSeconds),
@@ -102,7 +108,7 @@ date_format(_, _) ->
     {error, badargs}.
 
 
-%% Retrieve unixtime
+%% @doc Retrieve unixtime
 %%
 -spec(unixtime() ->
              pos_integer()).
@@ -110,10 +116,10 @@ unixtime() ->
     {M, S, _} = os:timestamp(),
     (M * 1000000) + S.
 
-%% Convert data from a unixtime to a gregorian seconds
+%% @doc Convert data from a unixtime to a gregorian seconds
 %%
--spec(unixtime_to_greg_seconds(pos_integer()) ->
-             pos_integer()).
+-spec(unixtime_to_greg_seconds(UnixTime) ->
+             pos_integer() when UnixTime :: pos_integer()).
 unixtime_to_greg_seconds(UnixTime) ->
     M = leo_math:floor(UnixTime / 1000000),
     S = (UnixTime - M * 1000000),
@@ -121,7 +127,7 @@ unixtime_to_greg_seconds(UnixTime) ->
       calendar:now_to_universal_time({M,S,0})).
 
 
-%% Convert data from a gregorian seconds to a unixtime
+%% @doc Convert data from a gregorian seconds to a unixtime
 %%
 -spec(greg_seconds_to_unixtime(pos_integer()) ->
              pos_integer()).

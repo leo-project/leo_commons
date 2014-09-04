@@ -20,7 +20,8 @@
 %%
 %% ---------------------------------------------------------------------
 %% Leo Commons - Miscellaneous
-%% @doc
+%%
+%% @doc leo_misc is miscellaneous utilities
 %% @end
 %%======================================================================
 -module(leo_misc).
@@ -39,22 +40,34 @@
 
 %% @doc check a node existence.
 %%
--spec(node_existence(atom()) ->
-             boolean()).
+-spec(node_existence(Node) ->
+             Existence::boolean() when Node::atom()).
 node_existence(Node) ->
     node_existence(Node, 5000).
 
+%% @doc check a node existence.
+%%
+-spec(node_existence(Node, Timeout) ->
+             Existence::boolean() when Node::atom(),
+                                       Timeout::pos_integer()).
 node_existence(Node, Timeout) ->
     (Node == rpc:call(Node, erlang, node, [], Timeout)).
 
 
 %% @doc Retrieve a value from prop-lists
 %%
--spec(get_value(any(), list(tuple())) ->
-             undefined | any()).
+-spec(get_value(Key, Props) ->
+             undefined | any() when Key::any(),
+                                    Props::[tuple()]).
 get_value(Key, Props) ->
     get_value(Key, Props, undefined).
 
+%% @doc Retrieve a value from prop-lists
+%%
+-spec(get_value(Key, Props, Default) ->
+             undefined | any() when Key::any(),
+                                    Props::[tuple()],
+                                    Default::any()).
 get_value(Key, Props, Default) ->
     case lists:keyfind(Key, 1, Props) of
         false ->
@@ -66,8 +79,9 @@ get_value(Key, Props, Default) ->
 
 %% @doc Retrieve tokens from binary-data by delimiter-char
 %%
--spec(binary_tokens(binary(), binary()) ->
-             list()).
+-spec(binary_tokens(Bin, Delimiter) ->
+             Tokens::[binary] when Bin::binary(),
+                                   Delimiter::binary()).
 binary_tokens(Bin, Delimiter) ->
     case binary:split(Bin, Delimiter, [global,trim]) of
         [<<>>|Rest] ->
@@ -87,13 +101,20 @@ init_env() ->
     ok.
 
 
-%% @doc Retrieve
+%% @doc Returns the value of the configuration parameter Par application from ETS
 %%
--spec(get_env(atom(), any()) ->
-             {ok, any()} | undefined).
+-spec(get_env(AppName, Key) ->
+             {ok, any()} | undefined when AppName::atom(),
+                                          Key::any()).
 get_env(AppName, Key) ->
     get_env(AppName, Key, undefined).
 
+%% @doc Returns the value of the configuration parameter Par application from ETS
+%%
+-spec(get_env(AppName, Key, Default) ->
+             {ok, any()} | undefined when AppName::atom(),
+                                          Key::any(),
+                                          Default::any()).
 get_env(AppName, Key, Default) ->
     case ets:lookup(?ETS_ENV_TABLE, {env, AppName, Key}) of
         [{_, Val}] ->
@@ -103,24 +124,28 @@ get_env(AppName, Key, Default) ->
     end.
 
 
--spec(set_env(atom(), any(), any()) ->
-             ok).
+%% @doc Sets the value of the configuration parameter Par for Application to ETS
+%%
+-spec(set_env(AppName, Key, Val) ->
+             ok when AppName::atom(),
+                     Key::any(),
+                     Val::any()).
 set_env(AppName, Key, Val) ->
     _ = ets:insert(?ETS_ENV_TABLE, {{env, AppName, Key}, Val}),
     ok.
 
 
-%% @doc Change datatype to binary
+%% @doc Convert value from any-type to binary
 %%
--spec(any_to_binary(any()) ->
-             binary()).
-any_to_binary(Item) when is_binary(Item) ->
-    Item;
-any_to_binary(Item) when is_atom(Item) ->
-    list_to_binary(atom_to_list(Item));
-any_to_binary(Item) when is_list(Item) ->
-    list_to_binary(Item);
-any_to_binary(Item) when is_number(Item) ->
-    list_to_binary(integer_to_list(Item));
-any_to_binary(Item) ->
-    term_to_binary(Item).
+-spec(any_to_binary(V) ->
+             binary() when V::binary()).
+any_to_binary(V) when is_binary(V) ->
+    V;
+any_to_binary(V) when is_atom(V) ->
+    list_to_binary(atom_to_list(V));
+any_to_binary(V) when is_list(V) ->
+    list_to_binary(V);
+any_to_binary(V) when is_number(V) ->
+    list_to_binary(integer_to_list(V));
+any_to_binary(V) ->
+    term_to_binary(V).

@@ -20,7 +20,8 @@
 %%
 %% ---------------------------------------------------------------------
 %% Leo Commons - hashtable
-%% @doc
+%%
+%% @doc leo_hashtable is utilities for storing value as key-value in memory
 %% @end
 %%======================================================================
 -module(leo_hashtable).
@@ -50,19 +51,24 @@
 new() ->
     spawn(?MODULE, loop, [mutable]).
 
+%% @doc Create an instance
+%%
 -spec(new(immutable) -> pid() | {error, any()}).
 new(immutable) ->
     spawn(?MODULE, loop, [immutable]).
 
 %% @doc Destroy an instance
 %%
--spec(destroy(Hashtble::pid()) -> true).
+-spec(destroy(Hashtable) ->
+             true when Hashtable::pid()).
 destroy(Hashtable) ->
     exit(Hashtable, destroy).
 
 %% @doc Retrieve a value by key
 %%
--spec(get(Hashtable::pid(), K::any()) -> any()).
+-spec(get(Hashtable, K) ->
+             any() when Hashtable::pid(),
+                        K::any()).
 get(Hashtable, K) ->
     Hashtable ! {self(), get, K},
     receive
@@ -70,16 +76,26 @@ get(Hashtable, K) ->
             Res
     end.
 
--spec(get(Hashtable::pid(), K::any(), UndefinedValue::any()) -> any()).
-get(Hashtable, K, UndefinedValue) ->
+%% @doc Retrieve a value by key
+%%
+-spec(get(Hashtable, K, DefaultValue) ->
+             any() when Hashtable::pid(),
+                        K::any(),
+                        DefaultValue::any()).
+get(Hashtable, K, DefaultValue) ->
     case get(Hashtable, K) of
-        undefined -> UndefinedValue;
-        Value -> Value
+        undefined ->
+            DefaultValue;
+        Value ->
+            Value
     end.
 
 %% @doc Insert a value
 %%
--spec(put(Hashtable::pid(), K::any(), V::any()) -> ok).
+-spec(put(Hashtable, K, V) ->
+             ok when Hashtable::pid(),
+                     K::any(),
+                     V::any()).
 put(Hashtable, K, V) ->
     Hashtable ! {self(), put, K, V},
     receive
@@ -89,7 +105,10 @@ put(Hashtable, K, V) ->
 
 %% @doc Append a value
 %%
--spec(append(Hashtable::pid(), K::any(), V::any()) -> ok | {error, any()}).
+-spec(append(Hashtable, K, V) ->
+             ok | {error, any()} when Hashtable::pid(),
+                                      K::any(),
+                                      V::any()).
 append(Hashtable, K, V) ->
     case catch put(Hashtable, K,
                    get(Hashtable, K, []) ++ [V]) of
@@ -101,7 +120,8 @@ append(Hashtable, K, V) ->
 
 %% @doc Clear values into the hash-table
 %%
--spec(clear(Hashtable::pid()) -> ok).
+-spec(clear(Hashtable) ->
+             ok when Hashtable::pid()).
 clear(Hashtable) ->
     case all(Hashtable) of
         [] ->
@@ -114,7 +134,9 @@ clear(Hashtable) ->
 
 %% @doc Remove a value
 %%
--spec(delete(Hashtable::pid(), K::any()) -> ok).
+-spec(delete(Hashtable, K) ->
+             ok when Hashtable::pid(),
+                     K::any()).
 delete(Hashtable, K) ->
     Hashtable ! {self(), delete, K},
     receive
@@ -124,7 +146,8 @@ delete(Hashtable, K) ->
 
 %% @doc Retrieve all values
 %%
--spec(all(Hashtable::pid()) -> list()).
+-spec(all(Hashtable) ->
+             [any()] when Hashtable::pid()).
 all(Hashtable) ->
     Hashtable ! {self(), all},
     receive
@@ -134,7 +157,8 @@ all(Hashtable) ->
 
 %% @doc Retrieve all keys
 %%
--spec(keys(Hashtable::pid()) -> list()).
+-spec(keys(Hashtable) ->
+             list() when Hashtable::pid()).
 keys(Hashtable) ->
     lists:map(fun({X,_}) ->
                       X
@@ -142,7 +166,9 @@ keys(Hashtable) ->
 
 %% @doc Increment a value
 %%
--spec(incr(Hashtable::pid(), K::any()) -> any()).
+-spec(incr(Hashtable, K) ->
+             any() when Hashtable::pid(),
+                        K::any()).
 incr(Hashtable, K) ->
     put(Hashtable, K,
         get(Hashtable, K, 0) + 1).
@@ -173,4 +199,3 @@ loop(Type) ->
             Pid ! get()
     end,
     loop(Type).
-
