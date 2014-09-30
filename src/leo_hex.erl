@@ -20,7 +20,9 @@
 %%
 %% ---------------------------------------------------------------------
 %% Leo Commons - Hex (Util)
-%% @doc
+%%
+%% @doc leo_hex is utilities for calculation of hexadecimal
+%% @reference [https://github.com/leo-project/leo_commons/blob/master/src/leo_hex.erl]
 %% @end
 %%======================================================================
 -module(leo_hex).
@@ -40,14 +42,18 @@
 -define(H(X), (hex(X)):16).
 
 
-%% @doc Convert from binary to hex
--spec(binary_to_hex(binary()) ->
-             string()).
-binary_to_hex(Binary) when is_binary(Binary) ->
-    binary_to_hex(Binary, <<>>).
+%% @doc Convert the value from binary to hex
+%%
+-spec(binary_to_hex(Bin) ->
+             string() when Bin::binary()).
+binary_to_hex(Bin) when is_binary(Bin) ->
+    binary_to_hex(Bin, <<>>).
 
--spec(binary_to_hex(binary(), binary()) ->
-             string()).
+%% @doc Convert the value from binary to hex
+%%
+-spec(binary_to_hex(Bin, Acc) ->
+             string() when Bin::binary(),
+                           Acc::binary()).
 binary_to_hex(<<>>, Acc) ->
     string:to_lower(erlang:binary_to_list(Acc));
 binary_to_hex(Bin, Acc) when byte_size(Bin) >= 8 ->
@@ -72,9 +78,13 @@ binary_to_hex_8(<<A:8, B:8, C:8, D:8, E:8, F:8, G:8, H:8, Rest/binary>>, Acc) ->
         ?H(A), ?H(B), ?H(C), ?H(D), ?H(E), ?H(F), ?H(G), ?H(H)>>).
 
 
+
 -compile({inline, [hex/1]}).
--spec(hex(integer()) ->
-             integer()).
+
+%% @doc Calculate the value by hexadecimal
+%%
+-spec(hex(V) ->
+             integer() when V::non_neg_integer()).
 hex(X) ->
     element(X + 1,
             {16#3030, 16#3031, 16#3032, 16#3033, 16#3034, 16#3035, 16#3036,
@@ -115,24 +125,33 @@ hex(X) ->
              16#4635, 16#4636, 16#4637, 16#4638, 16#4639, 16#4641, 16#4642,
              16#4643, 16#4644, 16#4645, 16#4646}).
 
-%% @doc Convert from binary to integer
--spec(raw_binary_to_integer(binary()) ->
-             integer()).
-raw_binary_to_integer(Binary) when is_binary (Binary) ->
-    raw_binary_to_integer(Binary, 0).
+%% @doc Convert the value from binary to integer
+%%
+-spec(raw_binary_to_integer(Bin) ->
+             integer() when Bin::binary()).
+raw_binary_to_integer(Bin) when is_binary (Bin) ->
+    raw_binary_to_integer(Bin, 0).
 
--spec(raw_binary_to_integer(binary(), integer()) ->
-             integer()).
+%% @doc Convert the value from binary to integer
+%%
+-spec(raw_binary_to_integer(Bin, Acc) ->
+             integer() when Bin::binary(), Acc::integer()).
 raw_binary_to_integer(<<>>, Acc) -> Acc;
 raw_binary_to_integer(<<X:8, Rest/binary>>, Acc) ->
     raw_binary_to_integer(Rest, Acc * 256 + X).
 
-%%% ex. 258 -> <<1, 2>>
-%%% ex. 16909060 -> <<1, 2, 3, 4>>
--spec(integer_to_raw_binary(integer()) ->
-             binary()).
+%% @doc Convert the value from integer to raw-binary
+%%
+-spec(integer_to_raw_binary(I) ->
+             binary() when I::integer()).
 integer_to_raw_binary(I) ->
     integer_to_raw_binary(I, 16, []).
+
+%% @doc Convert the value from integer to raw-binary
+%%
+-spec(integer_to_raw_binary(I, Len) ->
+             binary() when I::integer(),
+                           Len::pos_integer()).
 integer_to_raw_binary(I, Len) ->
     integer_to_raw_binary(I, Len, []).
 integer_to_raw_binary(I, Len, Acc) when I < 256 ->
@@ -145,9 +164,10 @@ integer_to_raw_binary(I, Len, Acc) ->
     Rem = I rem 256,
     integer_to_raw_binary(Div, Len, [Rem|Acc]).
 
-%% @doc Convert from integer to hex
--spec(integer_to_hex(integer(), pos_integer()) ->
-             string()).
+%% @doc Convert the value from integer to hex
+-spec(integer_to_hex(I, Len) ->
+             string() when I::integer(),
+                           Len::pos_integer()).
 integer_to_hex(I, Len) ->
     Hex = string:to_lower(erlang:integer_to_list(I, 16)),
     LenDiff = Len - length(Hex),
@@ -157,12 +177,16 @@ integer_to_hex(I, Len) ->
     end.
 
 
-%% @doc Convert from hex to integer
--spec(hex_to_integer(string()) ->
-             integer()).
+%% @doc Convert the value from hex to integer
+-spec(hex_to_integer(Hex) ->
+             integer() when Hex::string()).
 hex_to_integer(Hex) ->
     lists:foldl (fun (E, Acc) -> Acc * 16 + dehex (E) end, 0, Hex).
 
+
+%% @doc Convert the value from hex to string
+-spec(hex_to_string(Hex) ->
+             string() when Hex::string()).
 hex_to_string(Hex) ->
     {String, _} = lists:foldr (fun (E, {Acc, nolow}) ->
                                        {Acc, dehex (E)};

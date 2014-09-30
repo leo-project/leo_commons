@@ -20,7 +20,8 @@
 %%
 %% ---------------------------------------------------------------------
 %% Leo Commons - Mime (Util)
-%% @doc
+%% @doc leo_mime is utilities for retrieving mime-type from path
+%% @reference [https://github.com/leo-project/leo_commons/blob/master/src/leo_mime.erl]
 %% @end
 %%======================================================================
 -module(leo_mime).
@@ -32,7 +33,10 @@
 
 -export([guess_mime/1]).
 
-guess_mime("") ->
+%% @doc Retrieve mime from the path
+-spec(guess_mime(Path) ->
+             Mime::binary() when Path::[]|binary()).
+guess_mime([]) ->
     <<"application/octet-stream">>;
 guess_mime(<<>>) ->
     <<"application/octet-stream">>;
@@ -42,6 +46,11 @@ guess_mime(Path) ->
         Mime -> Mime
     end.
 
+
+%% @doc Retrieve mime from the path
+%% @private
+-spec(from_extension(Extention) ->
+             Mime::binary()|undefined when Extention::string()).
 from_extension(".stl") ->
     <<"application/SLA">>;
 from_extension(".stp") ->
@@ -422,5 +431,3 @@ from_extension(".otf") ->
     <<"font/opentype">>;
 from_extension(_) ->
     undefined.
-
-

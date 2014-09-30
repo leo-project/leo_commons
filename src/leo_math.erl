@@ -20,7 +20,9 @@
 %%
 %% ---------------------------------------------------------------------
 %% Leo Commons - Utils
-%% @doc
+%%
+%% @doc leo_math is utilities for calculation
+%% @reference [https://github.com/leo-project/leo_commons/blob/master/src/leo_math.erl]
 %% @end
 %%======================================================================
 -module(leo_math).
@@ -31,39 +33,39 @@
 %%--------------------------------------------------------------------
 %% API
 %%--------------------------------------------------------------------
-%% @doc power value
+%% @doc Calculate power value
 %% @end
--spec(power(integer(), integer()) ->
-             integer()).
+-spec(power(N, P) ->
+             integer() when N::integer(),
+                            P::integer()).
 power(N, P) when is_integer(N), P == 0 -> 1;
 power(N, P) when is_integer(N), P >  0 -> N * power(N,  P - 1);
 power(_, _) -> 0.
 
 
-%% @doc floor value
+%% @doc Calculate floor value
 %% @end
--spec(floor(number()) ->
-             integer()).
-floor(X) when X < 0 ->
-    T = trunc(X),
-    case X - T == 0 of
+-spec(floor(N) ->
+             integer() when N::number()).
+floor(N) when N < 0 ->
+    T = trunc(N),
+    case N - T == 0 of
         true  -> T;
         false -> T - 1
     end;
-floor(X) ->
-    trunc(X).
+floor(N) ->
+    trunc(N).
 
 
-%% @doc ceiling value
+%% @doc Calulate ceiling value
 %% @end
--spec(ceiling(number()) ->
-             integer()).
-ceiling(X) when X < 0 ->
-    trunc(X);
-ceiling(X) ->
-    T = trunc(X),
-    case X - T == 0 of
+-spec(ceiling(N) ->
+             integer() when N::number()).
+ceiling(N) when N < 0 ->
+    trunc(N);
+ceiling(N) ->
+    T = trunc(N),
+    case N - T == 0 of
         true  -> T;
         false -> T + 1
     end.
-
