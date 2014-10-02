@@ -1,13 +1,27 @@
 #!/bin/sh
 
-rm -rf doc/rst && mkdir doc/rst
 make doc
-pandoc --read=html --write=rst doc/leo_date.html -o doc/rst/leo_date.rst
-pandoc --read=html --write=rst doc/leo_file.html -o doc/rst/leo_file.rst
-pandoc --read=html --write=rst doc/leo_hashtable.html -o doc/rst/leo_hashtable.rst
-pandoc --read=html --write=rst doc/leo_hex.html -o doc/rst/leo_hex.rst
-pandoc --read=html --write=rst doc/leo_http.html -o doc/rst/leo_http.rst
-pandoc --read=html --write=rst doc/leo_math.html -o doc/rst/leo_math.rst
-pandoc --read=html --write=rst doc/leo_mime.html -o doc/rst/leo_mime.rst
-pandoc --read=html --write=rst doc/leo_misc.html -o doc/rst/leo_misc.rst
-pandoc --read=html --write=rst doc/leo_mnesia.html -o doc/rst/leo_mnesia.rst
+rm -rf doc/rst && mkdir doc/rst
+
+for Mod in leo_date \
+           leo_file \
+           leo_hashtable \
+           leo_hex \
+           leo_http \
+           leo_math \
+           leo_mime \
+           leo_misc \
+           leo_mnesia
+do
+    read_file="doc/$Mod.html"
+    write_file="doc/rst/$Mod.rst"
+
+    pandoc --read=html --write=rst "$read_file" -o "$write_file"
+
+    sed -ie "1,6d" "$write_file"
+    sed -ie "s/\Module //" "$write_file"
+    LINE_1=`cat $write_file | wc -l`
+    LINE_2=`expr $LINE_1 - 10`
+    sed -ie "$LINE_2,\$d" "$write_file"
+done
+rm -rf doc/rst/*.rste
