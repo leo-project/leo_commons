@@ -22,7 +22,7 @@
 %% Leo Commons - Utils
 %%
 %% @doc leo_file is utilities for file processing
-%% @reference [https://github.com/leo-project/leo_commons/blob/master/src/leo_file.erl]
+%% @reference https://github.com/leo-project/leo_commons/blob/master/src/leo_file.erl
 %% @end
 %%======================================================================
 -module(leo_file).

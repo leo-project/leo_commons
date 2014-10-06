@@ -22,7 +22,7 @@
 %% Leo Commons - hashtable
 %%
 %% @doc leo_hashtable is utilities for storing value as key-value in memory
-%% @reference [https://github.com/leo-project/leo_commons/blob/master/src/leo_hashtable.erl]
+%% @reference https://github.com/leo-project/leo_commons/blob/master/src/leo_hashtable.erl
 %% @end
 %%======================================================================
 -module(leo_hashtable).
