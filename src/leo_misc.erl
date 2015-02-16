@@ -97,9 +97,18 @@ binary_tokens(Bin, Delimiter) ->
 -spec(init_env() ->
              ok).
 init_env() ->
-    catch ets:new(?ETS_ENV_TABLE,
-                  [named_table, set, public, {read_concurrency, true}]),
-    ok.
+    case ets:info(?ETS_ENV_TABLE) of
+        undefined ->
+            case ets:new(?ETS_ENV_TABLE,
+                         [named_table, set, public, {read_concurrency, true}]) of
+                ?ETS_ENV_TABLE ->
+                    ok;
+                _ ->
+                    erlang:error({error, 'could_not_create_ets_table'})
+            end;
+        _ ->
+            ok
+    end.
 
 
 %% @doc Returns the value of the configuration parameter Par application from ETS
