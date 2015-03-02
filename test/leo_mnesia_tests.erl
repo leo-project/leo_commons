@@ -59,7 +59,9 @@ suite_() ->
 
     %% WRITE
     Val0 = #test_table{id = 1, text = "test0"},
-    F1 = fun()-> mnesia:write(test_table, Val0, write) end,
+    F1 = fun()->
+                 mnesia:write(test_table, Val0, write)
+         end,
     ok = leo_mnesia:write(F1),
 
     %% READ-1
@@ -92,6 +94,16 @@ suite_() ->
                 qlc:e(Q2)
         end,
     not_found = leo_mnesia:read(F5),
+
+    %% Batch
+    F6 = fun() ->
+                 Ret_1 = mnesia:write(test_table, Val0, write),
+                 Ret_2 = mnesia:delete_object(test_table, Val0, write),
+                 ?assertEqual(ok, Ret_1),
+                 ?assertEqual(ok, Ret_2),
+                 ok
+        end,
+    ok = leo_mnesia:batch(F6),
     ok.
 
 -endif.

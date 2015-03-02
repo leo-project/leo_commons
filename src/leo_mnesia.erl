@@ -34,7 +34,7 @@
 -include_lib("stdlib/include/qlc.hrl").
 
 -export([read/1, write/1, delete/1,
-         export/2, export/3]).
+         batch/1, export/2, export/3]).
 
 
 %% @doc Retrieve a value from mnesia
@@ -70,6 +70,19 @@ write(Fun) ->
              ok | {error, any()}
                  when Fun::function()).
 delete(Fun) ->
+    case catch mnesia:activity(transaction, Fun) of
+        ok ->
+            ok;
+        {_, Cause} ->
+            {error, Cause}
+    end.
+
+
+%% @doc Bache processing
+-spec(batch(Fun) ->
+             ok | {error, any()}
+                 when Fun::function()).
+batch(Fun) ->
     case catch mnesia:activity(transaction, Fun) of
         ok ->
             ok;
