@@ -22,7 +22,7 @@
 %% Leo Commons - Hex (Util)
 %%
 %% @doc leo_hex is utilities for calculation of hexadecimal
-%% @reference [https://github.com/leo-project/leo_commons/blob/master/src/leo_hex.erl]
+%% @reference https://github.com/leo-project/leo_commons/blob/master/src/leo_hex.erl
 %% @end
 %%======================================================================
 -module(leo_hex).

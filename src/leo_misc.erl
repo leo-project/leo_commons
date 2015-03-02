@@ -22,7 +22,7 @@
 %% Leo Commons - Miscellaneous
 %%
 %% @doc leo_misc is miscellaneous utilities
-%% @reference [https://github.com/leo-project/leo_commons/blob/master/src/leo_misc.erl]
+%% @reference https://github.com/leo-project/leo_commons/blob/master/src/leo_misc.erl
 %% @end
 %%======================================================================
 -module(leo_misc).
@@ -97,9 +97,18 @@ binary_tokens(Bin, Delimiter) ->
 -spec(init_env() ->
              ok).
 init_env() ->
-    catch ets:new(?ETS_ENV_TABLE,
-                  [named_table, set, public, {read_concurrency, true}]),
-    ok.
+    case ets:info(?ETS_ENV_TABLE) of
+        undefined ->
+            case ets:new(?ETS_ENV_TABLE,
+                         [named_table, set, public, {read_concurrency, true}]) of
+                ?ETS_ENV_TABLE ->
+                    ok;
+                _ ->
+                    erlang:error({error, 'could_not_create_ets_table'})
+            end;
+        _ ->
+            ok
+    end.
 
 
 %% @doc Returns the value of the configuration parameter Par application from ETS

@@ -21,7 +21,7 @@
 %% ---------------------------------------------------------------------
 %% Leo Commons - Mime (Util)
 %% @doc leo_mime is utilities for retrieving mime-type from path
-%% @reference [https://github.com/leo-project/leo_commons/blob/master/src/leo_mime.erl]
+%% @reference https://github.com/leo-project/leo_commons/blob/master/src/leo_mime.erl
 %% @end
 %%======================================================================
 -module(leo_mime).

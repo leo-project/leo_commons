@@ -22,7 +22,7 @@
 %% Leo Commons - Utils
 %%
 %% @doc leo_date is utilities for date processing.
-%% @reference [https://github.com/leo-project/leo_commons/blob/master/src/leo_date.erl]
+%% @reference https://github.com/leo-project/leo_commons/blob/master/src/leo_date.erl
 %% @end
 %%======================================================================
 -module(leo_date).
