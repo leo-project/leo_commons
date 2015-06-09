@@ -294,22 +294,3 @@ pread_2(IoDevice, Location, Number, Errors, RetryTimes) ->
             pread_2(IoDevice, Location, Number,
                     [Reason|Errors], RetryTimes - 1)
     end.
-
-
-%%======================================================================
-%% TEST
-%%======================================================================
-pread_test() ->
-    File = "pread_test.log",
-    {ok, IoDevice} = file:open(File, [raw, read, write, binary, append]),
-    ok = file:pwrite(IoDevice, 0, crypto:rand_bytes(128)),
-
-    {ok,_Bin_1} = ?MODULE:pread(IoDevice, 1, 32),
-    {ok,_Bin_2} = ?MODULE:pread(IoDevice, 64, 64),
-    {ok,_Bin_3} = ?MODULE:pread(IoDevice, 1,  64, true, 5),
-
-    {error, unexpected_len} = ?MODULE:pread(IoDevice,  96,  64, true, 5),
-    eof = ?MODULE:pread(IoDevice, 129,  32, true, 5),
-
-    ok = file:close(IoDevice),
-    ok.
