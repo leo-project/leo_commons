@@ -233,7 +233,7 @@ pread(IoDevice, Location, Number) ->
                                                      Reason::any() | badarg | terminated,
                                                      RetryTimes::non_neg_integer()).
 pread(IoDevice, Location, Number, RetryTimes) ->
-    pread_1(IoDevice, Location, Number, false, [], RetryTimes).
+    pread_1(IoDevice, Location, Number, [], RetryTimes).
 
 -spec(pread(IoDevice, Location, Number, IsStrictCheck, RetryTimes) ->
              {ok, Data} | eof | {error, Reason} when IoDevice::file:io_device(),
@@ -244,33 +244,56 @@ pread(IoDevice, Location, Number, RetryTimes) ->
                                                      Reason::any() | badarg | terminated,
                                                      RetryTimes::non_neg_integer()).
 pread(IoDevice, Location, Number, IsStrictCheck, RetryTimes) ->
-    pread_1(IoDevice, Location, Number, IsStrictCheck, [], RetryTimes).
+    case IsStrictCheck of
+        true ->
+            pread_2(IoDevice, Location, Number, <<>>, RetryTimes, RetryTimes);
+        false ->
+            pread_1(IoDevice, Location, Number, [], RetryTimes)
+    end.
 
 
 %% @private
-pread_1(_IoDevice,_Location,_Number,_IsStrictCheck, Errors, 0) ->
+pread_1(_IoDevice,_Location,_Number, Errors, 0) ->
     {error, Errors};
-pread_1(IoDevice, Location, Number, IsStrictCheck, Errors, RetryTimes) ->
+pread_1(IoDevice, Location, Number, Errors, RetryTimes) ->
     case file:pread(IoDevice, Location, Number) of
-        {ok, DataL} = Ret ->
-            case IsStrictCheck of
-                true ->
-                    case byte_size(DataL) of
-                        Number ->
-                            Ret;
-                        _Len ->
-                            pread_1(IoDevice, Location, Number, IsStrictCheck,
-                                    [{unexpeted_len,_Len}|Errors], RetryTimes - 1)
-                    end;
-                false ->
-                    Ret
-            end;
+        {ok,_DataL} = Ret ->
+            Ret;
         eof = Ret ->
             Ret;
         {error, Reason} ->
             timer:sleep(100),
-            pread_1(IoDevice, Location, Number, IsStrictCheck,
+            pread_1(IoDevice, Location, Number,
                     [Reason|Errors], RetryTimes - 1)
+    end.
+
+%% pread_2(_IoDevice,_Location,_Number,_IsStrictCheck, Errors, 0) ->
+%%     {error, Errors};
+pread_2(_IoDevice,_Location, Number, Acc,_, 0) ->
+    case byte_size(Acc) of
+        Number ->
+            {ok, Acc};
+        _Len ->
+            {error, unexpected_len}
+    end;
+pread_2(IoDevice, Location, Number, Acc, TotalRetryTimes, RetryTimes) ->
+    case file:pread(IoDevice, Location, Number) of
+        {ok, DataL} = Ret ->
+            case byte_size(DataL) of
+                Number ->
+                    Ret;
+                Len ->
+                    pread_2(IoDevice, Location + Len,
+                            Number - Len, << Acc/binary, DataL/binary >>,
+                            TotalRetryTimes, RetryTimes - 1)
+            end;
+        eof when RetryTimes == TotalRetryTimes ->
+            eof;
+        eof ->
+            {error, unexpected_len};
+        {error,_Reason} ->
+            timer:sleep(100),
+            pread_2(IoDevice, Location, Number, <<>>, TotalRetryTimes, RetryTimes - 1)
     end.
 
 
@@ -286,10 +309,8 @@ pread_test() ->
     {ok,_Bin_2} = ?MODULE:pread(IoDevice, 64, 64),
     {ok,_Bin_3} = ?MODULE:pread(IoDevice, 1,  64, true, 5),
 
-    {error,_Reason_1} = ?MODULE:pread(IoDevice,  96,  64, true, 5),
-    ?debugVal(_Reason_1),
-
-    eof = ?MODULE:pread(IoDevice, 128,  32, true, 5),
+    {error, unexpected_len} = ?MODULE:pread(IoDevice,  96,  64, true, 5),
+    eof = ?MODULE:pread(IoDevice, 129,  32, true, 5),
 
     ok = file:close(IoDevice),
     ok.
