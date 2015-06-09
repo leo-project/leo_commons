@@ -276,7 +276,8 @@ pread_1(IoDevice, Location, Number, Acc, TotalRetryTimes, RetryTimes) ->
             {error, unexpected_len};
         {error,_Reason} ->
             timer:sleep(100),
-            pread_1(IoDevice, Location, Number, <<>>, TotalRetryTimes, RetryTimes - 1)
+            pread_1(IoDevice, Location,
+                    Number, Acc, TotalRetryTimes, RetryTimes - 1)
     end.
 
 %% @private
