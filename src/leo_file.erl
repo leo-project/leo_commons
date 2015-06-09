@@ -30,9 +30,12 @@
 -author('Yosuke Hara').
 -author('Yoshiyuki Kanno').
 
+-include_lib("eunit/include/eunit.hrl").
+
 -export([file_unconsult/2, file_touch/1, file_get_mount_path/1,
          file_get_remain_disk/1, file_get_total_size/1, file_delete_all/1,
-         dsize/1
+         dsize/1,
+         pread/3, pread/4, pread/5
         ]).
 
 %%--------------------------------------------------------------------
@@ -207,3 +210,86 @@ dsize(Size) when Size =< ?FILE_KB -> integer_to_list(Size) ++ "B";
 dsize(Size) when Size  > ?FILE_KB -> integer_to_list(erlang:round(Size / ?FILE_KB)) ++ "K";
 dsize(Size) when Size  > ?FILE_MB -> integer_to_list(erlang:round(Size / ?FILE_MB)) ++ "M";
 dsize(Size) when Size  > ?FILE_GB -> integer_to_list(erlang:round(Size / ?FILE_GB)) ++ "G".
+
+
+-define(DEF_PREAD_RETRY_TIMES, 3).
+
+%% @doc Erlang file:pread/3's wrapper function
+%%      <http://www.erlang.org/doc/man/file.html#pread-3>
+-spec(pread(IoDevice, Location, Number) ->
+             {ok, Data} | eof | {error, Reason} when IoDevice::file:io_device(),
+                                                     Data::string() | binary(),
+                                                     Location::file:location(),
+                                                     Number::non_neg_integer(),
+                                                     Reason::any() | badarg | terminated).
+pread(IoDevice, Location, Number) ->
+    pread(IoDevice, Location, Number, ?DEF_PREAD_RETRY_TIMES).
+
+-spec(pread(IoDevice, Location, Number, RetryTimes) ->
+             {ok, Data} | eof | {error, Reason} when IoDevice::file:io_device(),
+                                                     Data::string() | binary(),
+                                                     Location::file:location(),
+                                                     Number::non_neg_integer(),
+                                                     Reason::any() | badarg | terminated,
+                                                     RetryTimes::non_neg_integer()).
+pread(IoDevice, Location, Number, RetryTimes) ->
+    pread_1(IoDevice, Location, Number, false, [], RetryTimes).
+
+-spec(pread(IoDevice, Location, Number, IsStrictCheck, RetryTimes) ->
+             {ok, Data} | eof | {error, Reason} when IoDevice::file:io_device(),
+                                                     Data::string() | binary(),
+                                                     Location::file:location(),
+                                                     Number::non_neg_integer(),
+                                                     IsStrictCheck::boolean(),
+                                                     Reason::any() | badarg | terminated,
+                                                     RetryTimes::non_neg_integer()).
+pread(IoDevice, Location, Number, IsStrictCheck, RetryTimes) ->
+    pread_1(IoDevice, Location, Number, IsStrictCheck, [], RetryTimes).
+
+
+%% @private
+pread_1(_IoDevice,_Location,_Number,_IsStrictCheck, Errors, 0) ->
+    {error, Errors};
+pread_1(IoDevice, Location, Number, IsStrictCheck, Errors, RetryTimes) ->
+    case file:pread(IoDevice, Location, Number) of
+        {ok, DataL} = Ret ->
+            case IsStrictCheck of
+                true ->
+                    case byte_size(DataL) of
+                        Number ->
+                            Ret;
+                        _Len ->
+                            pread_1(IoDevice, Location, Number, IsStrictCheck,
+                                    [{unexpeted_len,_Len}|Errors], RetryTimes - 1)
+                    end;
+                false ->
+                    Ret
+            end;
+        eof = Ret ->
+            Ret;
+        {error, Reason} ->
+            timer:sleep(100),
+            pread_1(IoDevice, Location, Number, IsStrictCheck,
+                    [Reason|Errors], RetryTimes - 1)
+    end.
+
+
+%%======================================================================
+%% TEST
+%%======================================================================
+pread_test() ->
+    File = "pread_test.log",
+    {ok, IoDevice} = file:open(File, [raw, read, write, binary, append]),
+    ok = file:pwrite(IoDevice, 0, crypto:rand_bytes(128)),
+
+    {ok,_Bin_1} = ?MODULE:pread(IoDevice, 1, 32),
+    {ok,_Bin_2} = ?MODULE:pread(IoDevice, 64, 64),
+    {ok,_Bin_3} = ?MODULE:pread(IoDevice, 1,  64, true, 5),
+
+    {error,_Reason_1} = ?MODULE:pread(IoDevice,  96,  64, true, 5),
+    ?debugVal(_Reason_1),
+
+    eof = ?MODULE:pread(IoDevice, 128,  32, true, 5),
+
+    ok = file:close(IoDevice),
+    ok.
