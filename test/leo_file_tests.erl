@@ -40,9 +40,18 @@ pread_1_test_() ->
              {ok, IoDevice} = file:open(?TEST_FILE_1, [raw, read, write, binary, append]),
              ok = file:pwrite(IoDevice, 0, crypto:rand_bytes(128)),
 
-             {ok,_Bin_1} = leo_file:pread(IoDevice, 1, 32),
+             {ok, Bin_1_1} = leo_file:pread(IoDevice,  0, 32),
+             {ok, Bin_1_2} = leo_file:pread(IoDevice, 32, 32),
+             {ok, Bin_1_3} = leo_file:pread(IoDevice, 64, 32),
+             {ok, Bin_1_4} = leo_file:pread(IoDevice, 96, 32),
+             {ok, Bin_1_5} = leo_file:pread(IoDevice,  0, 128),
+             Bin_1 = << Bin_1_1/binary, Bin_1_2/binary, Bin_1_3/binary, Bin_1_4/binary >>,
+             128 = byte_size(Bin_1),
+             128 = byte_size(Bin_1_5),
+             ?assertEqual(Bin_1, Bin_1_5),
+
              {ok,_Bin_2} = leo_file:pread(IoDevice, 64, 64),
-             {ok,_Bin_3} = leo_file:pread(IoDevice, 1,  64, true),
+             {ok,_Bin_3} = leo_file:pread(IoDevice, 0,  64, true),
 
              {error, unexpected_len} = leo_file:pread(IoDevice, 96, 64, true),
              eof = leo_file:pread(IoDevice, 129, 32, true),
