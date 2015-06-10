@@ -2,7 +2,7 @@
 %%
 %% Leo Commons
 %%
-%% Copyright (c) 2012-2014 Rakuten, Inc.
+%% Copyright (c) 2012-2015 Rakuten, Inc.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -19,7 +19,7 @@
 %% under the License.
 %%
 %% ---------------------------------------------------------------------
-%% Leo Commons - Utils
+%% Leo Commons - File Utils
 %%
 %% @doc leo_file is utilities for file processing
 %% @reference https://github.com/leo-project/leo_commons/blob/master/src/leo_file.erl
@@ -30,9 +30,13 @@
 -author('Yosuke Hara').
 -author('Yoshiyuki Kanno').
 
+-include("leo_commons.hrl").
+-include_lib("eunit/include/eunit.hrl").
+
 -export([file_unconsult/2, file_touch/1, file_get_mount_path/1,
          file_get_remain_disk/1, file_get_total_size/1, file_delete_all/1,
-         dsize/1
+         dsize/1,
+         pread/3, pread/4
         ]).
 
 %%--------------------------------------------------------------------
@@ -207,3 +211,63 @@ dsize(Size) when Size =< ?FILE_KB -> integer_to_list(Size) ++ "B";
 dsize(Size) when Size  > ?FILE_KB -> integer_to_list(erlang:round(Size / ?FILE_KB)) ++ "K";
 dsize(Size) when Size  > ?FILE_MB -> integer_to_list(erlang:round(Size / ?FILE_MB)) ++ "M";
 dsize(Size) when Size  > ?FILE_GB -> integer_to_list(erlang:round(Size / ?FILE_GB)) ++ "G".
+
+
+%% @doc Erlang file:pread/3's wrapper function
+%%      <http://www.erlang.org/doc/man/file.html#pread-3>
+-spec(pread(IoDevice, Location, Number) ->
+             {ok, Data} | eof | {error, Reason} when IoDevice::file:io_device(),
+                                                     Data::string() | binary(),
+                                                     Location::file:location(),
+                                                     Number::non_neg_integer(),
+                                                     Reason::any() | badarg | terminated).
+pread(IoDevice, Location, Number) ->
+    pread(IoDevice, Location, Number, ?PREAD_TIMEOUT).
+
+-spec(pread(IoDevice, Location, Number, Timeout) ->
+             {ok, Data} | eof | {error, Reason} when IoDevice::file:io_device(),
+                                                     Data::string() | binary(),
+                                                     Location::file:location(),
+                                                     Number::non_neg_integer(),
+                                                     Timeout::pos_integer(),
+                                                     Reason::any() | badarg | terminated).
+pread(IoDevice, Location, Number, Timeout) ->
+    pread_1(IoDevice, Location, Number, <<>>,
+            leo_date:clock(), Timeout, 0).
+
+%% @private
+pread_1(IoDevice, Location, Number, Acc, StartTime, Timeout, RetryTimes) ->
+    CurrentTime = leo_date:clock(),
+    Duration = erlang:round((CurrentTime - StartTime) / 1000),
+    IsTimeout = (Duration >= Timeout),
+
+    case file:pread(IoDevice, Location, Number) of
+        {ok, DataL} ->
+            case byte_size(DataL) of
+                Number ->
+                    {ok, << Acc/binary, DataL/binary >>};
+                Len when IsTimeout == true ->
+                    error_logger:error_msg("~p,~p,~p,~p~n",
+                                           [{module, ?MODULE_STRING},
+                                            {function, "pread/6"},
+                                            {line, ?LINE}, {body, [{expected_len, Number},
+                                                                   {actual_len, Len},
+                                                                   {timeout, Duration}]}]),
+                    {error, unexpected_len};
+                Len ->
+                    error_logger:error_msg("~p,~p,~p,~p~n",
+                                           [{module, ?MODULE_STRING},
+                                            {function, "pread/6"},
+                                            {line, ?LINE}, {body, [{expected_len, Number},
+                                                                   {actual_len, Len}]}]),
+                    pread_1(IoDevice, Location + Len,
+                            Number - Len, << Acc/binary, DataL/binary >>,
+                            StartTime, Timeout, RetryTimes + 1)
+            end;
+        eof when RetryTimes == 0 ->
+            eof;
+        eof ->
+            {error, unexpected_len};
+        {error, Reason} ->
+            {error, Reason}
+    end.
