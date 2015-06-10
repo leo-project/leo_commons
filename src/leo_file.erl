@@ -213,8 +213,6 @@ dsize(Size) when Size  > ?FILE_MB -> integer_to_list(erlang:round(Size / ?FILE_M
 dsize(Size) when Size  > ?FILE_GB -> integer_to_list(erlang:round(Size / ?FILE_GB)) ++ "G".
 
 
--define(DEF_PREAD_RETRY_TIMES, 3).
-
 %% @doc Erlang file:pread/3's wrapper function
 %%      <http://www.erlang.org/doc/man/file.html#pread-3>
 -spec(pread(IoDevice, Location, Number) ->
