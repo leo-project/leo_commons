@@ -224,23 +224,18 @@ dsize(Size) when Size  > ?FILE_GB -> integer_to_list(erlang:round(Size / ?FILE_G
                                                      Number::non_neg_integer(),
                                                      Reason::any() | badarg | terminated).
 pread(IoDevice, Location, Number) ->
-    pread(IoDevice, Location, Number, false).
+    pread(IoDevice, Location, Number, ?PREAD_TIMEOUT).
 
--spec(pread(IoDevice, Location, Number, IsStrictCheck) ->
+-spec(pread(IoDevice, Location, Number, Timeout) ->
              {ok, Data} | eof | {error, Reason} when IoDevice::file:io_device(),
                                                      Data::string() | binary(),
                                                      Location::file:location(),
                                                      Number::non_neg_integer(),
-                                                     IsStrictCheck::boolean(),
+                                                     Timeout::pos_integer(),
                                                      Reason::any() | badarg | terminated).
-pread(IoDevice, Location, Number, IsStrictCheck) ->
-    case IsStrictCheck of
-        true ->
-            pread_1(IoDevice, Location, Number, <<>>,
-                    leo_date:clock(), ?PREAD_TIMEOUT, 0);
-        false ->
-            file:pread(IoDevice, Location, Number)
-    end.
+pread(IoDevice, Location, Number, Timeout) ->
+    pread_1(IoDevice, Location, Number, <<>>,
+            leo_date:clock(), Timeout, 0).
 
 %% @private
 pread_1(IoDevice, Location, Number, Acc, StartTime, Timeout, RetryTimes) ->
