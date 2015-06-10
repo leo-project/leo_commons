@@ -267,7 +267,7 @@ pread_1(IoDevice, Location, Number, Acc, StartTime, Timeout, RetryTimes) ->
         eof when RetryTimes == 0 ->
             eof;
         eof ->
-            {error, unexpected_len};
+            {error, unexpected_len_and_eof};
         {error, Reason} ->
             {error, Reason}
     end.

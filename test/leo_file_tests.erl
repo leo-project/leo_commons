@@ -53,7 +53,7 @@ pread_1_test_() ->
              {ok,_Bin_2} = leo_file:pread(IoDevice, 64, 64),
              {ok,_Bin_3} = leo_file:pread(IoDevice, 0,  64, timer:seconds(1)),
 
-             {error, unexpected_len} = leo_file:pread(IoDevice, 96, 64, true),
+             {error, unexpected_len_and_eof} = leo_file:pread(IoDevice, 96, 64, true),
              eof = leo_file:pread(IoDevice, 129, 32, timer:seconds(1)),
 
              ok = file:close(IoDevice),
@@ -110,7 +110,12 @@ run(Dev,_MaxPos,_SizeToRead, NumReadOp, NumReadOp) ->
     ok;
 run(Dev, MaxPos, SizeToRead, NumReadOp, CurNum) ->
     Pos = random:uniform(MaxPos - 1),
-    {error,unexpected_len} = leo_file:pread(Dev, Pos, SizeToRead, timer:seconds(1)),
+    case leo_file:pread(Dev, Pos, SizeToRead, timer:seconds(1)) of
+        {error,_} ->
+            void;
+        _ ->
+            erlang:error(unexpected_return_value)
+    end,
     run(Dev, MaxPos, SizeToRead, NumReadOp, CurNum + 1).
 
 -endif.
