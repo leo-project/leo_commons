@@ -42,10 +42,10 @@ pread_1_test_() ->
 
              {ok,_Bin_1} = leo_file:pread(IoDevice, 1, 32),
              {ok,_Bin_2} = leo_file:pread(IoDevice, 64, 64),
-             {ok,_Bin_3} = leo_file:pread(IoDevice, 1,  64, true, 5),
+             {ok,_Bin_3} = leo_file:pread(IoDevice, 1,  64, true),
 
-             {error, unexpected_len} = leo_file:pread(IoDevice, 96, 64, true, 5),
-             eof = leo_file:pread(IoDevice, 129, 32, true, 5),
+             {error, unexpected_len} = leo_file:pread(IoDevice, 96, 64, true),
+             eof = leo_file:pread(IoDevice, 129, 32, true),
 
              ok = file:close(IoDevice),
              ok
@@ -56,7 +56,7 @@ pread_1_test_() ->
 %% TEST-2
 pread_2_test_() ->
     {setup,
-     fun ( ) ->
+     fun () ->
              ok
      end,
      fun (_) ->
@@ -101,7 +101,7 @@ run(Dev,_MaxPos,_SizeToRead, NumReadOp, NumReadOp) ->
     ok;
 run(Dev, MaxPos, SizeToRead, NumReadOp, CurNum) ->
     Pos = random:uniform(MaxPos - 1),
-    {error,unexpected_len} = leo_file:pread(Dev, Pos, SizeToRead, true, 5),
+    {error,unexpected_len} = leo_file:pread(Dev, Pos, SizeToRead, true),
     run(Dev, MaxPos, SizeToRead, NumReadOp, CurNum + 1).
 
 -endif.

@@ -2,7 +2,7 @@
 %%
 %% Leo Commons
 %%
-%% Copyright (c) 2012-2014 Rakuten, Inc.
+%% Copyright (c) 2012-2015 Rakuten, Inc.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -19,7 +19,7 @@
 %% under the License.
 %%
 %% ---------------------------------------------------------------------
-%% Leo Commons - Utils
+%% Leo Commons - File Utils
 %%
 %% @doc leo_file is utilities for file processing
 %% @reference https://github.com/leo-project/leo_commons/blob/master/src/leo_file.erl
@@ -30,12 +30,13 @@
 -author('Yosuke Hara').
 -author('Yoshiyuki Kanno').
 
+-include("leo_commons.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
 -export([file_unconsult/2, file_touch/1, file_get_mount_path/1,
          file_get_remain_disk/1, file_get_total_size/1, file_delete_all/1,
          dsize/1,
-         pread/3, pread/4, pread/5
+         pread/3, pread/4
         ]).
 
 %%--------------------------------------------------------------------
@@ -223,74 +224,57 @@ dsize(Size) when Size  > ?FILE_GB -> integer_to_list(erlang:round(Size / ?FILE_G
                                                      Number::non_neg_integer(),
                                                      Reason::any() | badarg | terminated).
 pread(IoDevice, Location, Number) ->
-    pread(IoDevice, Location, Number, ?DEF_PREAD_RETRY_TIMES).
+    pread(IoDevice, Location, Number, false).
 
--spec(pread(IoDevice, Location, Number, RetryTimes) ->
-             {ok, Data} | eof | {error, Reason} when IoDevice::file:io_device(),
-                                                     Data::string() | binary(),
-                                                     Location::file:location(),
-                                                     Number::non_neg_integer(),
-                                                     Reason::any() | badarg | terminated,
-                                                     RetryTimes::non_neg_integer()).
-pread(IoDevice, Location, Number, RetryTimes) ->
-    pread(IoDevice, Location, Number, false, RetryTimes).
-
--spec(pread(IoDevice, Location, Number, IsStrictCheck, RetryTimes) ->
+-spec(pread(IoDevice, Location, Number, IsStrictCheck) ->
              {ok, Data} | eof | {error, Reason} when IoDevice::file:io_device(),
                                                      Data::string() | binary(),
                                                      Location::file:location(),
                                                      Number::non_neg_integer(),
                                                      IsStrictCheck::boolean(),
-                                                     Reason::any() | badarg | terminated,
-                                                     RetryTimes::non_neg_integer()).
-pread(IoDevice, Location, Number, IsStrictCheck, RetryTimes) ->
+                                                     Reason::any() | badarg | terminated).
+pread(IoDevice, Location, Number, IsStrictCheck) ->
     case IsStrictCheck of
         true ->
-            pread_1(IoDevice, Location, Number, <<>>, RetryTimes, RetryTimes);
+            pread_1(IoDevice, Location, Number, <<>>,
+                    leo_date:clock(), ?PREAD_TIMEOUT, 0);
         false ->
-            pread_2(IoDevice, Location, Number, [], RetryTimes)
+            file:pread(IoDevice, Location, Number)
     end.
 
 %% @private
-pread_1(_IoDevice,_Location, Number, Acc,_, 0) ->
-    case byte_size(Acc) of
-        Number ->
-            {ok, Acc};
-        _Len ->
-            {error, unexpected_len}
-    end;
-pread_1(IoDevice, Location, Number, Acc, TotalRetryTimes, RetryTimes) ->
+pread_1(IoDevice, Location, Number, Acc, StartTime, Timeout, RetryTimes) ->
+    CurrentTime = leo_date:clock(),
+    Duration = erlang:round((CurrentTime - StartTime) / 1000),
+    IsTimeout = (Duration >= Timeout),
+
     case file:pread(IoDevice, Location, Number) of
-        {ok, DataL} = Ret ->
+        {ok, DataL} ->
             case byte_size(DataL) of
                 Number ->
-                    Ret;
+                    {ok, << Acc/binary, DataL/binary >>};
+                Len when IsTimeout == true ->
+                    error_logger:error_msg("~p,~p,~p,~p~n",
+                                           [{module, ?MODULE_STRING},
+                                            {function, "pread/6"},
+                                            {line, ?LINE}, {body, [{expected_len, Number},
+                                                                   {actual_len, Len},
+                                                                   {timeout, Duration}]}]),
+                    {error, unexpected_len};
                 Len ->
+                    error_logger:error_msg("~p,~p,~p,~p~n",
+                                           [{module, ?MODULE_STRING},
+                                            {function, "pread/6"},
+                                            {line, ?LINE}, {body, [{expected_len, Number},
+                                                                   {actual_len, Len}]}]),
                     pread_1(IoDevice, Location + Len,
                             Number - Len, << Acc/binary, DataL/binary >>,
-                            TotalRetryTimes, RetryTimes - 1)
+                            StartTime, Timeout, RetryTimes + 1)
             end;
-        eof when RetryTimes == TotalRetryTimes ->
+        eof when RetryTimes == 0 ->
             eof;
         eof ->
             {error, unexpected_len};
-        {error,_Reason} ->
-            timer:sleep(100),
-            pread_1(IoDevice, Location,
-                    Number, Acc, TotalRetryTimes, RetryTimes - 1)
-    end.
-
-%% @private
-pread_2(_IoDevice,_Location,_Number, Errors, 0) ->
-    {error, Errors};
-pread_2(IoDevice, Location, Number, Errors, RetryTimes) ->
-    case file:pread(IoDevice, Location, Number) of
-        {ok,_DataL} = Ret ->
-            Ret;
-        eof = Ret ->
-            Ret;
         {error, Reason} ->
-            timer:sleep(100),
-            pread_2(IoDevice, Location, Number,
-                    [Reason|Errors], RetryTimes - 1)
+            {error, Reason}
     end.
