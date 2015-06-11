@@ -274,15 +274,21 @@ pread_1(IoDevice, Location, Number, Acc,
                 Number ->
                     {ok, {<< Acc/binary, DataL/binary >>, Errors}};
                 Len when IsTimeout == true ->
-                    Errors_1 = [ [{expected_len, Number},
-                                  {actual_len, Len}] |Errors],
+                    Errors_1 = [ [{location, Location},
+                                  {expected_len, Number},
+                                  {actual_len, Len},
+                                  {diff, Number - Len}
+                                 ] |Errors],
                     {error, {unexpected_len, Errors_1}};
                 Len ->
                     pread_1(IoDevice, Location + Len,
                             Number - Len, << Acc/binary, DataL/binary >>,
                             StartTime, Timeout,
-                            [ [{expected_len, Number},
-                               {actual_len, Len}] |Errors], RetryTimes + 1)
+                            [ [{location, Location},
+                               {expected_len, Number},
+                               {actual_len, Len},
+                               {diff, Number - Len}
+                              ] |Errors], RetryTimes + 1)
             end;
         eof when RetryTimes == 0 ->
             eof;
