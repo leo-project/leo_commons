@@ -264,10 +264,14 @@ pread(IoDevice, Location, Number, Timeout) ->
 %% @private
 pread_1(IoDevice, Location, Number, Acc,
         StartTime, Timeout, Errors, RetryTimes) ->
-    CurrentTime = leo_date:clock(),
-    Duration = erlang:round((CurrentTime - StartTime) / 1000),
-    IsTimeout = (Duration >= Timeout),
-
+    IsTimeout = case (RetryTimes == 0) of
+                    true ->
+                        false;
+                    false ->
+                        CurrentTime = leo_date:clock(),
+                        Duration = erlang:round((CurrentTime - StartTime) / 1000),
+                        (Duration >= Timeout)
+                end,
     case file:pread(IoDevice, Location, Number) of
         {ok, DataL} ->
             case byte_size(DataL) of
