@@ -232,11 +232,38 @@ pread(IoDevice, Location, Number) ->
                                                      Timeout::pos_integer(),
                                                      Reason::any() | badarg | terminated).
 pread(IoDevice, Location, Number, Timeout) ->
-    pread_1(IoDevice, Location, Number, <<>>,
-            leo_date:clock(), Timeout, 0).
+    case pread_1(IoDevice, Location, Number, <<>>,
+                 leo_date:clock(), Timeout, [], 0) of
+        {ok, {Bin, []}} ->
+            {ok, Bin};
+        {ok, Bin, Errors} ->
+            error_logger:error_msg("~p,~p,~p,~p~n",
+                                   [{module, ?MODULE_STRING},
+                                    {function, "pread/4"},
+                                    {line, ?LINE},
+                                    {body, [{errors, lists:reverse(Errors)},
+                                            {result, ok}
+                                           ]}]),
+            {ok, Bin};
+        eof ->
+            eof;
+        {error, {Cause, []}} ->
+            {error, Cause};
+        {error, {Cause, Errors}} ->
+            error_logger:error_msg("~p,~p,~p,~p~n",
+                                   [{module, ?MODULE_STRING},
+                                    {function, "pread/4"},
+                                    {line, ?LINE},
+                                    {body, [{errors, lists:reverse(Errors)},
+                                            {result, Cause}
+                                           ]}]),
+            {error, Cause}
+    end.
+
 
 %% @private
-pread_1(IoDevice, Location, Number, Acc, StartTime, Timeout, RetryTimes) ->
+pread_1(IoDevice, Location, Number, Acc,
+        StartTime, Timeout, Errors, RetryTimes) ->
     CurrentTime = leo_date:clock(),
     Duration = erlang:round((CurrentTime - StartTime) / 1000),
     IsTimeout = (Duration >= Timeout),
@@ -245,29 +272,28 @@ pread_1(IoDevice, Location, Number, Acc, StartTime, Timeout, RetryTimes) ->
         {ok, DataL} ->
             case byte_size(DataL) of
                 Number ->
-                    {ok, << Acc/binary, DataL/binary >>};
+                    {ok, {<< Acc/binary, DataL/binary >>, Errors}};
                 Len when IsTimeout == true ->
-                    error_logger:error_msg("~p,~p,~p,~p~n",
-                                           [{module, ?MODULE_STRING},
-                                            {function, "pread/6"},
-                                            {line, ?LINE}, {body, [{expected_len, Number},
-                                                                   {actual_len, Len},
-                                                                   {timeout, Duration}]}]),
-                    {error, unexpected_len};
+                    Errors_1 = [ [{location, Location},
+                                  {expected_len, Number},
+                                  {actual_len, Len},
+                                  {diff, Number - Len}
+                                 ] |Errors],
+                    {error, {unexpected_len, Errors_1}};
                 Len ->
-                    error_logger:error_msg("~p,~p,~p,~p~n",
-                                           [{module, ?MODULE_STRING},
-                                            {function, "pread/6"},
-                                            {line, ?LINE}, {body, [{expected_len, Number},
-                                                                   {actual_len, Len}]}]),
                     pread_1(IoDevice, Location + Len,
                             Number - Len, << Acc/binary, DataL/binary >>,
-                            StartTime, Timeout, RetryTimes + 1)
+                            StartTime, Timeout,
+                            [ [{location, Location},
+                               {expected_len, Number},
+                               {actual_len, Len},
+                               {diff, Number - Len}
+                              ] |Errors], RetryTimes + 1)
             end;
         eof when RetryTimes == 0 ->
             eof;
         eof ->
-            {error, unexpected_len_and_eof};
+            {error, {unexpected_len_and_eof, Errors}};
         {error, Reason} ->
-            {error, Reason}
+            {error, {Reason, Errors}}
     end.
