@@ -285,6 +285,7 @@ pread_1(IoDevice, Location, Number, Acc,
                                  ] |Errors],
                     {error, {unexpected_len, Errors_1}};
                 Len ->
+                    timer:sleep(1),
                     pread_1(IoDevice, Location + Len,
                             Number - Len, << Acc/binary, DataL/binary >>,
                             StartTime, Timeout,
