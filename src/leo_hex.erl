@@ -38,7 +38,8 @@
          integer_to_raw_binary/1, integer_to_raw_binary/2,
          integer_to_hex/2,
          hex_to_integer/1,
-         hex_to_string/1]).
+         hex_to_string/1,
+         binary_trim/1]).
 
 -define(H(X), (hex(X)):16).
 
@@ -208,6 +209,29 @@ dehex(H) when H >= $a, H =< $f -> H - $a + 10;
 dehex(H) when H >= $A, H =< $F -> H - $A + 10;
 dehex(H) when H >= $0, H =< $9 -> H - $0.
 
+%% @doc Trim Space from Binary
+-spec(binary_trim(Bin) ->
+            binary() when Bin::binary()).
+binary_trim(Bin) ->
+    LeftTrimmed = binary_left_trim(Bin),
+    binary_right_trim(LeftTrimmed, byte_size(LeftTrimmed) - 1).
+
+%% @private
+binary_left_trim(<<$\s, Bin/binary>>) ->
+    binary_left_trim(Bin);
+binary_left_trim(Bin) ->
+    Bin.
+
+%% @private
+binary_right_trim(_Bin, Len) when Len < 0 ->
+    <<>>;
+binary_right_trim(Bin, Len) ->
+    case Bin of
+        <<Head:Len/binary, $\s>> ->
+            binary_right_trim(Head, Len - 1);
+        _ ->
+            Bin
+    end.
 
 %%======================================================================
 %% TEST
@@ -250,4 +274,14 @@ integer_to_raw_binary_test() ->
     ?assertEqual(<<0, 0, 0, 30, 97>>, leo_hex:integer_to_raw_binary(7777, 5)),
     ?assertEqual(<<0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,7,3,5>>, leo_hex:integer_to_raw_binary(34013957)),
     ?assertEqual(<<0, 1,2,3,4,5,6,7,8,9,0,1,2,3,4,5>>, leo_hex:integer_to_raw_binary(5233100606242806050944357496980485)),
+    ok.
+
+binary_trim_test() ->
+    ?assertEqual(<<"Hello World">>, leo_hex:binary_trim(<<"Hello World">>)),
+    ?assertEqual(<<"Hello World">>, leo_hex:binary_trim(<<"    Hello World">>)),
+    ?assertEqual(<<"Hello World">>, leo_hex:binary_trim(<<"Hello World    ">>)),
+    ?assertEqual(<<"Hello World">>, leo_hex:binary_trim(<<"    Hello World   ">>)),
+    ?assertEqual(<<"0">>, leo_hex:binary_trim(<<"0">>)),
+    ?assertEqual(<<>>, leo_hex:binary_trim(<<" ">>)),
+    ?assertEqual(<<>>, leo_hex:binary_trim(<<>>)),
     ok.
