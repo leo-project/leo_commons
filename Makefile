@@ -26,7 +26,7 @@ build_plt:
 	dialyzer --build_plt --output_plt $(PLT_FILE) --apps $(APPS)
 dialyzer:
 	@$(REBAR) compile
-	dialyzer --plt $(PLT_FILE) --dump_callgraph $(DOT_FILE) ebin/ 
+	dialyzer --plt $(PLT_FILE) --dump_callgraph $(DOT_FILE) -Wrace_conditions ebin/
 doc: compile
 	@$(REBAR) doc
 callgraph: graphviz

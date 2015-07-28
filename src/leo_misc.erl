@@ -81,8 +81,8 @@ get_value(Key, Props, Default) ->
 %% @doc Retrieve tokens from binary-data by delimiter-char
 %%
 -spec(binary_tokens(Bin, Delimiter) ->
-             Tokens::[binary] when Bin::binary(),
-                                   Delimiter::binary()).
+             Tokens::[binary()] when Bin::binary(),
+                                     Delimiter::binary()).
 binary_tokens(Bin, Delimiter) ->
     case binary:split(Bin, Delimiter, [global,trim]) of
         [<<>>|Rest] ->
