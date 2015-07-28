@@ -9,5 +9,8 @@ Overview
 * "leo_commons" is common modules for LeoFS and others. 
 * "leo-commons" uses the "rebar" build system. Makefile so that simply running "make" at the top level should work.
   * [rebar](https://github.com/basho/rebar)
-* "leo-commons" requires Erlang R14B04/R15B02/R15B03
+* "leo-commons" requires Erlang R16B03-1 or higher
 
+## Sponsors
+
+LeoProject/LeoFS is sponsored by [Rakuten, Inc.](http://global.rakuten.com/corp/) and suppoerted by [Rakuten Institute of Technology](http://rit.rakuten.co.jp/).
