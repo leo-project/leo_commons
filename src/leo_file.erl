@@ -236,7 +236,7 @@ pread(IoDevice, Location, Number, Timeout) ->
                  leo_date:clock(), Timeout, [], 0) of
         {ok, {Bin, []}} ->
             {ok, Bin};
-        {ok, Bin, Errors} ->
+        {ok, {Bin, Errors}} ->
             error_logger:error_msg("~p,~p,~p,~p~n",
                                    [{module, ?MODULE_STRING},
                                     {function, "pread/4"},
@@ -262,6 +262,18 @@ pread(IoDevice, Location, Number, Timeout) ->
 
 
 %% @private
+-spec(pread_1(IoDevice, Location, Number, Acc,
+              StartTime, Timeout, Errors, RetryTimes) ->
+             {ok, Data} | eof | {error, Reason} when IoDevice::file:io_device(),
+                                                     Data::string() | binary(),
+                                                     Location::file:location(),
+                                                     Number::non_neg_integer(),
+                                                     Acc::binary(),
+                                                     StartTime::non_neg_integer(),
+                                                     Timeout::pos_integer(),
+                                                     Errors::[],
+                                                     RetryTimes::non_neg_integer(),
+                                                     Reason::term()).
 pread_1(IoDevice, Location, Number, Acc,
         StartTime, Timeout, Errors, RetryTimes) ->
     IsTimeout = case (RetryTimes == 0) of
