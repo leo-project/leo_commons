@@ -112,7 +112,8 @@ file_get_mount_path(FilePath) ->
         [{"none",0,0}] ->
             {error, "not avaivale"};
         DiskData when is_list(DiskData) ->
-            Tokens = filename:split(FilePath),
+            AbsFilePath = filename:absname(FilePath),
+            Tokens = filename:split(AbsFilePath),
             RevTokens = lists:reverse(Tokens),
             file_get_mount_path(RevTokens, DiskData)
     end.
