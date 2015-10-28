@@ -31,29 +31,32 @@
 
 -include_lib("eunit/include/eunit.hrl").
 
--define(DEF_SENDING_CHUNK_SIZE,    131072).
-
 -export([chunked_send/3, chunked_send/4]).
+
+-define(DEF_SENDING_CHUNK_SIZE, 131072). %% 128KB
+
+
+%% @doc Send chunked objects
+%%
 -spec(chunked_send(Transport, Socket, IOList) ->
-                    ok | {error, any()} when Transport::module(),
-                                             Socket::inet:socket(),
-                                             IOList::iodata()).
+             ok | {error, any()} when Transport::module(),
+                                      Socket::inet:socket(),
+                                      IOList::iodata()).
 chunked_send(Transport, Socket, IOData) ->
     chunked_send(Transport, Socket, IOData, ?DEF_SENDING_CHUNK_SIZE).
 
 -spec(chunked_send(Transport, Socket, IOList, ChunkSize) ->
-                    ok | {error, any()} when Transport::module(),
-                                             Socket::inet:socket(),
-                                             IOList::iodata(),
-                                             ChunkSize::pos_integer()).
-
+             ok | {error, any()} when Transport::module(),
+                                      Socket::inet:socket(),
+                                      IOList::iodata(),
+                                      ChunkSize::pos_integer()).
 chunked_send(Transport, Socket, IOList, ChunkSize) when is_list(IOList) ->
     Bin = iolist_to_binary(IOList),
     chunked_send(Transport, Socket, Bin, ChunkSize);
 chunked_send(Transport, Socket, Bin, ChunkSize) when byte_size(Bin) =< ChunkSize ->
     Transport:send(Socket, Bin);
 chunked_send(Transport, Socket, Bin, ChunkSize) ->
-    <<Head:ChunkSize/binary, Rest/binary>> = Bin,
+    << Head:ChunkSize/binary, Rest/binary >> = Bin,
     case Transport:send(Socket, Head) of
         ok ->
             chunked_send(Transport, Socket, Rest, ChunkSize);
