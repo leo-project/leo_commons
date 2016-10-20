@@ -429,5 +429,7 @@ from_extension(".woff") ->
     <<"application/x-font-woff">>;
 from_extension(".otf") ->
     <<"font/opentype">>;
+from_extension(".apk") ->
+    <<"application/vnd.android.package-archive">>;
 from_extension(_) ->
     undefined.
