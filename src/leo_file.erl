@@ -32,8 +32,9 @@
 
 -include("leo_commons.hrl").
 -include_lib("eunit/include/eunit.hrl").
+-include_lib("kernel/include/file.hrl").
 
--export([file_unconsult/2, file_touch/1, file_get_mount_path/1,
+-export([file_unconsult/2, file_touch/1, file_get_mount_path/1, file_get_canonicalized_path/1,
          file_get_remain_disk/1, file_get_total_size/1, file_delete_all/1,
          dsize/1,
          pread/3, pread/4
@@ -116,6 +117,32 @@ file_get_mount_path(FilePath) ->
             Tokens = filename:split(AbsFilePath),
             RevTokens = lists:reverse(Tokens),
             file_get_mount_path(RevTokens, DiskData)
+    end.
+
+%% @doc Canonicalize by following every symlink in every component of the given name
+%%
+-spec(file_get_canonicalized_path(FilePath) ->
+             {ok, string()} | {error, any()} when FilePath::string()).
+file_get_canonicalized_path(FilePath) ->
+    file_get_canonicalized_path(FilePath, "").
+
+file_get_canonicalized_path(Path, Dest) ->
+    %% remove the trailing slash
+    Rest = string:strip(Path, right, $/),
+    case file:read_link_info(Rest) of
+        {ok, #file_info{type = symlink}} ->
+            {ok, New} = file:read_link_all(Rest),
+            file_get_canonicalized_path(New, Dest);
+        {ok, _} ->
+            Base = filename:basename(Rest),
+            case filename:dirname(Rest) of
+                "/" ->
+                    {ok, filename:join(Rest, Dest)};
+                Dir ->
+                    file_get_canonicalized_path(Dir, filename:join(Base, Dest))
+            end;
+        {error, Reason} ->
+            {error, Reason}
     end.
 
 
