@@ -37,7 +37,7 @@
 -export([file_unconsult/2, file_touch/1, file_get_mount_path/1, file_get_canonicalized_path/1,
          file_get_remain_disk/1, file_get_total_size/1, file_delete_all/1,
          dsize/1,
-         pread/3, pread/4
+         pread/3
         ]).
 
 %%--------------------------------------------------------------------
@@ -250,95 +250,22 @@ dsize(Size) when Size  > ?FILE_GB -> integer_to_list(erlang:round(Size / ?FILE_G
                                                      Number::non_neg_integer(),
                                                      Reason::any() | badarg | terminated).
 pread(IoDevice, Location, Number) ->
-    pread(IoDevice, Location, Number, ?PREAD_TIMEOUT).
-
--spec(pread(IoDevice, Location, Number, Timeout) ->
-             {ok, Data} | eof | {error, Reason} when IoDevice::file:io_device(),
-                                                     Data::string() | binary(),
-                                                     Location::file:location(),
-                                                     Number::non_neg_integer(),
-                                                     Timeout::pos_integer(),
-                                                     Reason::any() | badarg | terminated).
-pread(IoDevice, Location, Number, Timeout) ->
-    case pread_1(IoDevice, Location, Number, <<>>,
-                 leo_date:clock(), Timeout, [], 0) of
-        {ok, {Bin, []}} ->
-            {ok, Bin};
-        {ok, {Bin, Errors}} ->
-            error_logger:error_msg("~p,~p,~p,~p~n",
-                                   [{module, ?MODULE_STRING},
-                                    {function, "pread/4"},
-                                    {line, ?LINE},
-                                    {body, [{errors, lists:reverse(Errors)},
-                                            {result, ok}
-                                           ]}]),
-            {ok, Bin};
-        eof ->
-            eof;
-        {error, {Cause, []}} ->
-            {error, Cause};
-        {error, {Cause, Errors}} ->
-            error_logger:error_msg("~p,~p,~p,~p~n",
-                                   [{module, ?MODULE_STRING},
-                                    {function, "pread/4"},
-                                    {line, ?LINE},
-                                    {body, [{errors, lists:reverse(Errors)},
-                                            {result, Cause}
-                                           ]}]),
-            {error, Cause}
-    end.
-
-
-%% @private
--spec(pread_1(IoDevice, Location, Number, Acc,
-              StartTime, Timeout, Errors, RetryTimes) ->
-             {ok, Data} | eof | {error, Reason} when IoDevice::file:io_device(),
-                                                     Data::string() | binary(),
-                                                     Location::file:location(),
-                                                     Number::non_neg_integer(),
-                                                     Acc::binary(),
-                                                     StartTime::non_neg_integer(),
-                                                     Timeout::pos_integer(),
-                                                     Errors::[],
-                                                     RetryTimes::non_neg_integer(),
-                                                     Reason::term()).
-pread_1(IoDevice, Location, Number, Acc,
-        StartTime, Timeout, Errors, RetryTimes) ->
-    IsTimeout = case (RetryTimes == 0) of
-                    true ->
-                        false;
-                    false ->
-                        CurrentTime = leo_date:clock(),
-                        Duration = erlang:round((CurrentTime - StartTime) / 1000),
-                        (Duration >= Timeout)
-                end,
     case file:pread(IoDevice, Location, Number) of
-        {ok, DataL} ->
-            case byte_size(DataL) of
+        {ok, Bin} ->
+            case byte_size(Bin) of
                 Number ->
-                    {ok, {<< Acc/binary, DataL/binary >>, Errors}};
-                Len when IsTimeout == true ->
-                    Errors_1 = [ [{location, Location},
-                                  {expected_len, Number},
-                                  {actual_len, Len},
-                                  {diff, Number - Len}
-                                 ] |Errors],
-                    {error, {unexpected_len, Errors_1}};
-                Len ->
-                    timer:sleep(1),
-                    pread_1(IoDevice, Location + Len,
-                            Number - Len, << Acc/binary, DataL/binary >>,
-                            StartTime, Timeout,
-                            [ [{location, Location},
-                               {expected_len, Number},
-                               {actual_len, Len},
-                               {diff, Number - Len}
-                              ] |Errors], RetryTimes + 1)
+                    {ok, Bin};
+                _ ->
+                    %% # of bytes left in this file is less than Number
+                    {error, unexpected_len}
             end;
-        eof when RetryTimes == 0 ->
-            eof;
         eof ->
-            {error, {unexpected_len_and_eof, Errors}};
-        {error, Reason} ->
-            {error, {Reason, Errors}}
+            eof;
+        {error, Cause} ->
+            error_logger:error_msg("~p,~p,~p,~p~n",
+                                   [{module, ?MODULE_STRING},
+                                    {function, "pread/4"},
+                                    {line, ?LINE},
+                                    {body, {result, Cause}}]),
+            {error, Cause}
     end.
