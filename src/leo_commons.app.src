@@ -22,7 +22,7 @@
 {application, leo_commons,
   [
    {description, "Leo Commons"},
-   {vsn, "1.1.7"},
+   {vsn, "1.1.8"},
    {id, "leo_commons"},
    {registered, []},
    {applications, [kernel, stdlib]},
