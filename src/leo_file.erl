@@ -114,7 +114,9 @@ file_get_mount_path(FilePath) ->
             {error, "not avaivale"};
         DiskData when is_list(DiskData) ->
             AbsFilePath = filename:absname(FilePath),
-            Tokens = filename:split(AbsFilePath),
+            %% Canonicalize
+            {ok, Canonicalized} = file_get_canonicalized_path(AbsFilePath),
+            Tokens = filename:split(Canonicalized),
             RevTokens = lists:reverse(Tokens),
             file_get_mount_path(RevTokens, DiskData)
     end.

@@ -95,6 +95,54 @@ pread_2() ->
     timer:sleep(timer:seconds(3)),
     ok.
 
+file_get_canonicalized_path_test_() ->
+    {foreach,
+     fun() ->
+        % setup
+        string:strip(os:cmd("mktemp -d"), right, $\n)
+     end,
+     fun(TmpDir) ->
+        % teardown
+        Exec = "rm -rf " ++ TmpDir,
+        io:format(user, "[debug] executing: `~s`~n", [Exec]),
+        os:cmd(Exec)
+     end,
+     [{with, [T]} || T <- [
+                           fun incl_one_symlink_/1,
+                           fun incl_nested_symlink_/1
+                          ]]}.
+incl_one_symlink_(TmpDir) ->
+    Link = filename:join(TmpDir, "symlink"),
+    Expected = filename:join([TmpDir, "path", "to", "file"]),
+    ok = filelib:ensure_dir(Expected),
+    os:cmd("touch " ++ Expected),
+    ok = file:make_symlink(Expected, Link),
+    {ok, Actual} = leo_file:file_get_canonicalized_path(Link),
+    ?assertEqual(Expected, Actual),
+    ok.
+
+incl_nested_symlink_(TmpDir) ->
+    Expected = filename:join([TmpDir, "everything", "in", "its", "right", "place"]),
+    ExpectedDir = filename:dirname(Expected),
+    Middle = filename:join([TmpDir, "some", "other", "place"]),
+    MiddleDir = filename:dirname(Middle),
+    Link1 = filename:join(TmpDir, "symlink1"),
+    Link2 = filename:join(MiddleDir, "symlink2"),
+    %% Given
+    %% ${TMPDIR}/everything/in/its/right/place
+    %% ${TMPDIR}/symlink1 -> ${TMPDIR}/some/other
+    %% ${TMPDIR}/some/other/symlink2 -> ${TMPDIR}/everything/in/its/right
+    %% So
+    %% ${TMPDIR}/symlink1/symlink2/place -> ${TMPDIR}/everything/in/its/right/place
+    ok = filelib:ensure_dir(Expected),
+    ok = filelib:ensure_dir(Middle),
+    os:cmd("touch " ++ Expected),
+    ok = file:make_symlink(MiddleDir, Link1),
+    ok = file:make_symlink(ExpectedDir, Link2),
+    Src = filename:join([TmpDir, "symlink1", "symlink2", "place"]),
+    {ok, Actual} = leo_file:file_get_canonicalized_path(Src),
+    ?assertEqual(Expected, Actual),
+    ok.
 
 %%--------------------------------------------------------------------
 %% Internal Functions
