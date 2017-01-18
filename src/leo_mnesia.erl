@@ -2,7 +2,7 @@
 %%
 %% Leo Commons
 %%
-%% Copyright (c) 2012-2015 Rakuten, Inc.
+%% Copyright (c) 2012-2017 Rakuten, Inc.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -27,8 +27,6 @@
 %%======================================================================
 -module(leo_mnesia).
 
--author('Yosuke Hara').
-
 -include("leo_commons.hrl").
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("stdlib/include/qlc.hrl").
@@ -42,7 +40,7 @@
              {ok, [any()]} | not_found | {error, any()}
                  when Fun::function()).
 read(Fun) ->
-    case catch mnesia:activity(transaction, Fun) of
+    case catch mnesia:activity(sync_transaction, Fun) of
         {_, Cause} ->
             {error, Cause};
         [] ->
@@ -57,7 +55,7 @@ read(Fun) ->
              ok | {error, any()}
                  when Fun::function()).
 write(Fun) ->
-    case catch mnesia:activity(transaction, Fun) of
+    case catch mnesia:activity(sync_transaction, Fun) of
         ok ->
             ok;
         {_, Cause} ->
@@ -70,7 +68,7 @@ write(Fun) ->
              ok | {error, any()}
                  when Fun::function()).
 delete(Fun) ->
-    case catch mnesia:activity(transaction, Fun) of
+    case catch mnesia:activity(sync_transaction, Fun) of
         ok ->
             ok;
         {_, Cause} ->
@@ -83,7 +81,7 @@ delete(Fun) ->
              ok | {error, any()}
                  when Fun::function()).
 batch(Fun) ->
-    case catch mnesia:activity(transaction, Fun) of
+    case catch mnesia:activity(sync_transaction, Fun) of
         ok ->
             ok;
         {_, Cause} ->
@@ -112,7 +110,7 @@ export(FilePath, Table, ExportType) ->
     Rows = mnesia:table_info(Table, size),
 
     %% output records
-    mnesia:transaction(
+    mnesia:sync_transaction(
       fun() ->
               case catch  mnesia:first(Table) of
                   '$end_of_table' ->
