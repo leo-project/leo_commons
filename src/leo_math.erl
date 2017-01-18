@@ -2,7 +2,7 @@
 %%
 %% Leo Commons
 %%
-%% Copyright (c) 2012-2015 Rakuten, Inc.
+%% Copyright (c) 2012-2017 Rakuten, Inc.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -27,7 +27,6 @@
 %%======================================================================
 -module(leo_math).
 
--author('Yosuke Hara').
 -export([power/2, floor/1, ceiling/1]).
 
 %%--------------------------------------------------------------------

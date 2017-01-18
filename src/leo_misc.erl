@@ -2,7 +2,7 @@
 %%
 %% Leo Commons
 %%
-%% Copyright (c) 2012-2015 Rakuten, Inc.
+%% Copyright (c) 2012-2017 Rakuten, Inc.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -26,8 +26,6 @@
 %% @end
 %%======================================================================
 -module(leo_misc).
-
--author('Yosuke Hara').
 
 -export([node_existence/1, node_existence/2,
          get_value/2, get_value/3,

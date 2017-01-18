@@ -2,7 +2,7 @@
 %%
 %% Leo Commons
 %%
-%% Copyright (c) 2012-2015 Rakuten, Inc.
+%% Copyright (c) 2012-2017 Rakuten, Inc.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -26,8 +26,6 @@
 %% @end
 %%======================================================================
 -module(leo_date).
-
--author('Yosuke Hara').
 
 -export([now/0, clock/0, zone/0,
          date_format/0, date_format/1, date_format/2,
