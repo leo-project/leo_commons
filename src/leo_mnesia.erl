@@ -112,7 +112,7 @@ export(FilePath, Table, ExportType) ->
     Rows = mnesia:table_info(Table, size),
 
     %% output records
-    mnesia:transaction(
+    mnesia:sync_transaction(
       fun() ->
               case catch  mnesia:first(Table) of
                   '$end_of_table' ->
