@@ -42,7 +42,7 @@
              {ok, [any()]} | not_found | {error, any()}
                  when Fun::function()).
 read(Fun) ->
-    case catch mnesia:activity(transaction, Fun) of
+    case catch mnesia:activity(sync_transaction, Fun) of
         {_, Cause} ->
             {error, Cause};
         [] ->
@@ -57,7 +57,7 @@ read(Fun) ->
              ok | {error, any()}
                  when Fun::function()).
 write(Fun) ->
-    case catch mnesia:activity(transaction, Fun) of
+    case catch mnesia:activity(sync_transaction, Fun) of
         ok ->
             ok;
         {_, Cause} ->
@@ -70,7 +70,7 @@ write(Fun) ->
              ok | {error, any()}
                  when Fun::function()).
 delete(Fun) ->
-    case catch mnesia:activity(transaction, Fun) of
+    case catch mnesia:activity(sync_transaction, Fun) of
         ok ->
             ok;
         {_, Cause} ->
@@ -83,7 +83,7 @@ delete(Fun) ->
              ok | {error, any()}
                  when Fun::function()).
 batch(Fun) ->
-    case catch mnesia:activity(transaction, Fun) of
+    case catch mnesia:activity(sync_transaction, Fun) of
         ok ->
             ok;
         {_, Cause} ->
