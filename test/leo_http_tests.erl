@@ -94,7 +94,7 @@ key_inc_host1_() ->
     ?assertEqual(<<Bucket/binary, Path/binary>>, Ret).
 
 key_inc_host2_() ->
-    EndPoint = <<"leofs.org">>,
+    EndPoint = <<"leo-project.net">>,
     Bucket = <<"bucket">>,
     Host = <<Bucket/binary, ".", EndPoint/binary>>,
     Path = <<"/path_to_file.png">>,
@@ -105,9 +105,9 @@ key_inc_host2_() ->
     ?assertEqual(Expected, Ret).
 
 key_inc_host3_() ->
-    EndPoints = [<<"leofs.org">>, <<"test.leofs.org">>],
+    EndPoints = [<<"leo-project.net">>, <<"test.leo-project.net">>],
     Bucket = <<"bucket">>,
-    Host = <<Bucket/binary, ".test.leofs.org" >>,
+    Host = <<Bucket/binary, ".test.leo-project.net" >>,
     Path = <<"/path_to_file.png">>,
 
     {Bucket2, Ret} = leo_http:key(EndPoints, Host, Path),
