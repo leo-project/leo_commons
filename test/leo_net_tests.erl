@@ -47,7 +47,7 @@ client(Port, Bin, ChunkSize) ->
 
 chunked_send_test() ->
     ?debugMsg("===== Testing chunked_send ====="),
-    Bin = crypto:rand_bytes(?TEST_SIZE),
+    Bin = crypto:strong_rand_bytes(?TEST_SIZE),
 
     {ok, LSocket} = gen_tcp:listen(0, [binary, {packet, 0},
                                        {active, false}]),

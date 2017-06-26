@@ -38,7 +38,7 @@ pread_1_test_() ->
              os:cmd("rm " ++ ?TEST_FILE_1),
 
              {ok, IoDevice} = file:open(?TEST_FILE_1, [raw, read, write, binary, append]),
-             ok = file:pwrite(IoDevice, 0, crypto:rand_bytes(128)),
+             ok = file:pwrite(IoDevice, 0, crypto:strong_rand_bytes(128)),
 
              {ok, Bin_1_1} = leo_file:pread(IoDevice,  0, 32),
              {ok, Bin_1_2} = leo_file:pread(IoDevice, 32, 32),
@@ -83,7 +83,7 @@ pread_2() ->
 
     os:cmd("rm " ++ ?TEST_FILE_2),
     {ok, IoDevice} = file:open(?TEST_FILE_2, [raw, read, write, binary, append]),
-    ok = file:pwrite(IoDevice, 0, crypto:rand_bytes(SizeToRead)),
+    ok = file:pwrite(IoDevice, 0, crypto:strong_rand_bytes(SizeToRead)),
     ok = file:close(IoDevice),
     timer:sleep(200),
 
