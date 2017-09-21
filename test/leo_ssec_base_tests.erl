@@ -78,11 +78,11 @@ verify_block_encryption_test_() ->
          PadLen = 16,
          {ok, Key} = leo_ssec_base:gen_salt(32),
          Msg = <<"Test Binary Stream">>,
-         _MetaDataList = [{Algo, Pad, PadLen} || Algo <- AlgoList, Pad <- PadType],
+         MetaDataList = [{Algo, Pad, PadLen} || Algo <- AlgoList, Pad <- PadType],
          lists:foreach(fun(X) ->
-                               ?assertMatch({true, _},
-                                            leo_ssec_base:verify_block_encryption(Key, Msg, X))
-                       end, _MetaDataList)
+                           ?assertMatch({true, _},
+                                        leo_ssec_base:verify_block_encryption(Key, Msg, X))
+                       end, MetaDataList)
      end
     ].
 
@@ -91,6 +91,7 @@ test_verify_ssec_algorithm() ->
     ?assertMatch({true,_},  leo_ssec_base:verify_ssec_algorithm("AES256")),
     ?assertMatch({false, _}, leo_ssec_base:verify_ssec_algorithm("AES")).
 
+%% Test 6
 test_verify_ssec_key() ->
     % Key = "1234567890;1234567890;1234567890",
     % Checksum = "B97C52E348AA77376E5472C96737671F",
@@ -112,6 +113,23 @@ test_verify_ssec_key() ->
                                 {md5, "ABCD" ++ Base64Checksum1})).
 
 %% Test 6
-%% for padding. TODO
+-spec(verify_pad_unpad_test_() -> boolean()).
+verify_pad_unpad_test_() ->
+    [
+     fun() ->
+         % No 0 at end (for zero padding)
+         % Test for empty also
+         DataList = [<<1,2,3>>, <<123>>, <<>>],
+         AlgoList = [zero, rfc5652],
+         % PadWidth can't be zero
+         PadWidth = [2, 8, 16],
+         MetaList = [{X, Y, Z} || X <- DataList, Y <- AlgoList, Z <- PadWidth],
+         lists:foreach(fun({Data, Algo, Z}) ->
+                           PadData = leo_ssec_base:pad(Algo, Z, Data),
+                           ?assertNotEqual(Data, PadData),
+                           ?assertEqual(Data, leo_ssec_base:unpad(Algo, PadData))
+                       end, MetaList)
+     end
+    ].
 
 -endif.
