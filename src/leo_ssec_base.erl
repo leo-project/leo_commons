@@ -245,9 +245,7 @@ verify_ssec_key(ASCIIKey, Checksum) ->
         size(HashValue) /= 128/8 ->
            {false, "MD5 checksum is not 128 bit long. Provided: " ++ erlang:integer_to_list(size(Key))};
         true ->
-            Lhs = leo_hex:raw_binary_to_integer(crypto:hash(HashType, Key)),
-            Rhs = erlang:binary_to_integer(HashValue, 16),
-            {Lhs =:= Rhs, "Verification status"}
+           {crypto:hash(HashType, Key) =:= HashValue, "Verification status"}
     end.
 
 %%-------------------------------------------------------------------------

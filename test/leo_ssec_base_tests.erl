@@ -92,18 +92,24 @@ test_verify_ssec_algorithm() ->
     ?assertMatch({false, _}, leo_ssec_base:verify_ssec_algorithm("AES")).
 
 test_verify_ssec_key() ->
-    Key = "556B58703273357638792F413F4428472B4B6250655368566D59713374367739",
-    Checksum1 = "64C40DC99A6FE92CF3B7CBD5C22D8A13",
-    false.
-%    ?assertMatch({true, _}, leo_ssec_base:verify_ssec_key(base64:encode(Key),
-%                                {md5, base64:encode(Checksum1)})),
-%    Checksum2 = lists:droplast(Checksum1) ++ "5",
-%    ?assertMatch({false, _}, leo_ssec_base:verify_ssec_key(base64:encode(Key),
-%                                {md5, base64:encode(Checksum2)})),
-%    ?assertMatch({false, _}, leo_ssec_base:verify_ssec_key(base64:encode(lists:droplast(Key)),
-%                                {md5, base64:encode(Checksum2)})),
-%    ?assertMatch({false, _}, leo_ssec_base:verify_ssec_key(base64:encode(Key),
-%                                {md5, base64:encode(lists:droplast(Checksum2))})).
+    % Key = "1234567890;1234567890;1234567890",
+    % Checksum = "B97C52E348AA77376E5472C96737671F",
+    Base64Key1 = "MTIzNDU2Nzg5MDsxMjM0NTY3ODkwOzEyMzQ1Njc4OTA=",
+    Base64Checksum1 = "uXxS40iqdzduVHLJZzdnHw==",
+    ?assertMatch({true, _}, leo_ssec_base:verify_ssec_key(Base64Key1,
+                                {md5, Base64Checksum1})),
+
+    Base64Checksum2 = "5" ++ tl(Base64Checksum1),
+    Base64Key2 = "5" ++ tl(Base64Key1),
+    ?assertMatch({false, _}, leo_ssec_base:verify_ssec_key(Base64Key1,
+                                {md5, Base64Checksum2})),
+    ?assertMatch({false, _}, leo_ssec_base:verify_ssec_key(Base64Key2,
+                                {md5, Base64Checksum1})),
+    ?assertMatch({false, _}, leo_ssec_base:verify_ssec_key("ABCD" ++ Base64Key1,
+                                {md5, Base64Checksum1})),
+    % safe to remove 2 ==
+    ?assertMatch({false, _}, leo_ssec_base:verify_ssec_key(Base64Key1,
+                                {md5, "ABCD" ++ Base64Checksum1})).
 
 %% Test 6
 %% for padding. TODO
