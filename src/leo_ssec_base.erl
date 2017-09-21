@@ -258,6 +258,8 @@ verify_ssec_key(ASCIIKey, Checksum) ->
         PaddedBinary when Width::integer(),
                           Binary::binary(),
                           PaddedBinary::binary()).
+pad(_Type, 0, Binary) ->
+    Binary;
 pad(zero, Width, Binary) ->
     pad_zero(Width, Binary);
 pad(rfc5652, Width, Binary) ->
