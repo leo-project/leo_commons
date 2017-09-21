@@ -119,14 +119,14 @@ verify_pad_unpad_test_() ->
      fun() ->
          % No 0 at end (for zero padding)
          % Test for empty also
-         DataList = [<<1,2,3>>, <<123>>, <<>>],
+         DataList = [<<1,2,3,4,5,6>>, <<1,2,3>>, <<123>>, <<>>],
          AlgoList = [zero, rfc5652],
          % PadWidth can't be zero
-         PadWidth = [2, 8, 16],
+         PadWidth = [1, 2, 5, 8, 16],
          MetaList = [{X, Y, Z} || X <- DataList, Y <- AlgoList, Z <- PadWidth],
          lists:foreach(fun({Data, Algo, Z}) ->
                            PadData = leo_ssec_base:pad(Algo, Z, Data),
-                           ?assertNotEqual(Data, PadData),
+                           ?assertNotMatch({Data, rfc5652}, {PadData, Algo}),
                            ?assertEqual(Data, leo_ssec_base:unpad(Algo, PadData))
                        end, MetaList)
      end

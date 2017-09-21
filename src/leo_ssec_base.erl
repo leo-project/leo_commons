@@ -8,7 +8,7 @@
 -endif.
 
 -export([gen_salt/1, gen_hash/3,
-         verify_key/3,
+         verify_key/3, pad/3, unpad/2,
          verify_block_encryption/3, verify_stream_encryption/3,
          block_encrypt_data/2, block_encrypt_data/3,
          block_decrypt_data/2, block_decrypt_data/3,
