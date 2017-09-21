@@ -21,8 +21,13 @@
 %% API
 %%-------------------------------------------------------------------------
 
+%% @doc Contains all details about the algorithm and related options
+%%      Ensures simple encryption, decryption and storage op options
+%%      {AlgorithmType, PaddingType, MaxBitsToPad}
+%% @see algo_meta_data
 -type algo_metadata() :: {rc4|des_ecb|blowfish_ecb|aes_ecb,
-                          zero|rfc5652}.
+                          zero|rfc5652,
+                          integer}.
 
 %% @doc generate a random salt
 %%
@@ -33,10 +38,8 @@
 gen_salt(Length) when Length >= 32, Length =< 64 ->
     % erlang:binary_to_list(crypto:strong_rand_bytes(Length)).
     {ok, crypto:strong_rand_bytes(Length)};
-gen_salt(Length) when Length < 32 ->
-    {error, "Minimum length is 32. Provided: " ++ erlang:integer_to_list(Length)};
 gen_salt(Length) ->
-    {error, "Maximum length is 64. Provided: " ++ erlang:integer_to_list(Length)}.
+    {error, "Length must be between 32 and 64. Provided: " ++ erlang:integer_to_list(Length)}.
 
 %% @doc generate hash of user key using the salt
 %%
@@ -77,7 +80,9 @@ algo_meta_data() ->
     % Currently doesn't do anything more than supply the algorithm
     Algo = aes_ecb,
     Pad = rfc5652,
-    {Algo, Pad}.
+    % to ensure bit_size(PostPadData) mod PadToBits = 0.
+    PadToBits = 16,
+    {Algo, Pad, PadToBits}.
 
 % Integration of block and stream functions not done coz AEAD
 
@@ -98,9 +103,8 @@ block_encrypt_data(UserKey, Data) ->
                             AlgoMetaData::algo_metadata(),
                             CipherPadData::binary()).
 block_encrypt_data(UserKey, Data, AlgoMetaData) ->
-    {Algo, Pad} = AlgoMetaData,
-    % Technically 16 should also be in metadata?
-    PadData = pad(Pad, 16, Data),
+    {Algo, Pad, PadLen} = AlgoMetaData,
+    PadData = pad(Pad, PadLen, Data),
     crypto:block_encrypt(Algo, UserKey, PadData).
 
 %% @doc stream encrypt data using user key
@@ -121,7 +125,7 @@ stream_encrypt_data(State, Data) ->
                                  State::{state, crypto:opaque()},
                                  CipherData::binary()).
 stream_encrypt_data(UserKey, Data, AlgoMetaData) ->
-    {Algo, _} = AlgoMetaData,
+    {Algo, _, _} = AlgoMetaData,
     stream_encrypt_data(crypto:stream_init(Algo, UserKey), Data).
 
 %% @doc stream encrypt data using the user key and init vector
@@ -134,7 +138,7 @@ stream_encrypt_data(UserKey, Data, AlgoMetaData) ->
                                  State::crypto:opaque(),
                                  CipherData::binary()).
 stream_encrypt_data(UserKey, Data, IVec, AlgoMetaData) ->
-    {Algo, _} = AlgoMetaData,
+    {Algo, _, _} = AlgoMetaData,
     stream_encrypt_data(crypto:stream_init(Algo, UserKey, IVec), Data).
 
 %% @doc block decrypt data using the user key
@@ -154,7 +158,7 @@ block_decrypt_data(UserKey, Data) ->
                         AlgoMetaData::algo_metadata(),
                         PlainData::iodata()).
 block_decrypt_data(UserKey, Data, AlgoMetaData) ->
-    {Algo, Pad} = AlgoMetaData,
+    {Algo, Pad, _PadLen} = AlgoMetaData,
     PadData = crypto:block_decrypt(Algo, UserKey, Data),
     unpad(Pad, PadData).
 
@@ -171,7 +175,7 @@ stream_decrypt_data({state, OldState}, Data) ->
 stream_decrypt_data({key, UserKey}, Data) ->
     stream_decrypt_data(UserKey, Data, algo_meta_data()).
 stream_decrypt_data({key, UserKey}, Data, AlgoMetaData) ->
-    {Algo, _} = AlgoMetaData,
+    {Algo, _, _} = AlgoMetaData,
     stream_decrypt_data({state, crypto:stream_init(Algo, UserKey)}, Data).
 
 %% @doc stream decrypt data using the user key and init vector
@@ -184,7 +188,7 @@ stream_decrypt_data({key, UserKey}, Data, AlgoMetaData) ->
                                   State::{state, crypto:opaque()},
                                   CipherData::binary()).
 stream_decrypt_data({key, UserKey}, Data, IVec, AlgoMetaData) ->
-    {Algo, _} = AlgoMetaData,
+    {Algo, _, _} = AlgoMetaData,
     stream_decrypt_data({state, crypto:stream_init(Algo, UserKey, IVec)}, Data).
 
 %% @doc verify that block data is encrypted correctly
@@ -234,17 +238,16 @@ verify_ssec_key(ASCIIKey, Checksum) ->
     {HashType, ASCIIHash} = Checksum,
     HashValue = base64:decode(ASCIIHash),
     if
-        size(Key) /= 256/4 ->
+        size(Key) /= 256/8 ->
            {false, "Key is not 256 bit long. Provided: " ++ erlang:integer_to_list(size(Key))};
         HashType /= md5 ->
            {false, "MD5 checksum required. Provided: " ++ erlang:atom_to_list(HashType)};
-        size(HashValue) /= 128/4 ->
+        size(HashValue) /= 128/8 ->
            {false, "MD5 checksum is not 128 bit long. Provided: " ++ erlang:integer_to_list(size(Key))};
         true ->
-            Lhs = erlang:binary_to_list(crypto:hash(HashType, Key)),
+            Lhs = leo_hex:raw_binary_to_integer(crypto:hash(HashType, Key)),
             Rhs = erlang:binary_to_integer(HashValue, 16),
-            Value = lists:foldl(fun(X, Old) -> X + Old*256 end, 0, Lhs) =:= Rhs,
-            {Value, "Verification status"}
+            {Lhs =:= Rhs, "Verification status"}
     end.
 
 %%-------------------------------------------------------------------------
@@ -333,10 +336,9 @@ pad_rfc5652(Width, Binary) when Width /= 0 ->
                           Length::integer(),
                           Binary::binary(),
                           PaddedBinary::binary()).
-pad_rfc5652(_OrigWidth, 0, Binary) ->
-    Binary;
 pad_rfc5652(OrigWidth, Length, Binary) ->
-    pad_rfc5652(OrigWidth, Length - 1, <<Binary/binary, OrigWidth:8>>).
+    Suffix = binary:copy(<<OrigWidth:8>>, Length),
+    <<Binary/binary, Suffix/binary>>.
 
 %% @doc unpad data padded a per RFC5652
 %%      Can't take empty bianries as input coz invalid input
