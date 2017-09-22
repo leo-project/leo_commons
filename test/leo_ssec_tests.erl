@@ -68,9 +68,9 @@ check_hash(Len) ->
     {ok, Key} = leo_ssec:gen_salt(64),
     {ok, Salt1} = leo_ssec:gen_salt(Len),
     {ok, Salt2} = leo_ssec:gen_salt(Len),
-                                                % Check Hash algo actually generates hash
+    %% Check Hash algo actually generates hash
     lists:foreach(fun(Algo) -> ?assertEqual({Algo, crypto:hmac(Algo, Key, Salt1)}, leo_ssec:gen_hash(Algo, Salt1, Key)) end, AlgoList),
-                                                % Check Hash is diff for diff salts
+    %% Check Hash is diff for diff salts
     HashList = lists:map(fun(Algo) -> {leo_ssec:gen_hash(Algo, Key, Salt1), leo_ssec:gen_hash(Algo, Key, Salt2)} end, AlgoList),
     lists:foreach(fun({Hash1, Hash2}) -> ?assertNotEqual(Hash1, Hash2) end,
                   HashList).
@@ -124,7 +124,7 @@ test_verify_ssec_key() ->
                                                       {md5, Base64Checksum1})),
     ?assertMatch({false, _}, leo_ssec:verify_ssec_key("ABCD" ++ Base64Key1,
                                                       {md5, Base64Checksum1})),
-                                                % safe to remove 2 ==
+    %% safe to remove 2 ==
     ?assertMatch({false, _}, leo_ssec:verify_ssec_key(Base64Key1,
                                                       {md5, "ABCD" ++ Base64Checksum1})).
 
@@ -137,7 +137,7 @@ verify_pad_unpad_test_() ->
              %% Test for empty also
              DataList = [<<1,2,3,4,5,6>>, <<1,2,3>>, <<123>>, <<>>],
              AlgoList = [zero, rfc5652],
-                                                % PadWidth can't be zero
+             %% PadWidth can't be zero
              PadWidth = [2, 5, 8, 16],
              MetaList = [{X, Y, Z} || X <- DataList, Y <- AlgoList, Z <- PadWidth],
              lists:foreach(fun({Data, Algo, Z}) ->
