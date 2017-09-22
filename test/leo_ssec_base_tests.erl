@@ -25,18 +25,18 @@ run_test_() ->
      fun(_) -> ok end,
      [
       {"test gen_salt/1 for input 1...100",
-       {timeout, timer:seconds(1),
+       {timeout, timer:seconds(3),
         fun() -> check_wrapper(fun check_salt/1, 1, 100) end}},
       {"test gen_hash/1 for salt size 32...64, key 64",
-       {timeout, timer:seconds(1),
+       {timeout, timer:seconds(3),
         fun() -> check_wrapper(fun check_hash/1, 32, 64) end}},
       {"test verify_key/1 for salt size 32...64, key 64",
-       {timeout, timer:seconds(1),
+       {timeout, timer:seconds(3),
         fun() -> check_wrapper(fun verify_key/1, 32, 64) end}},
       {"test verify_ssec_algorithm/1",
-       {timeout, timer:seconds(1), fun test_verify_ssec_algorithm/0}},
+       {timeout, timer:seconds(3), fun test_verify_ssec_algorithm/0}},
       {"test verify_ssec_key/1",
-       {timeout, timer:seconds(1), fun test_verify_ssec_key/0}}
+       {timeout, timer:seconds(3), fun test_verify_ssec_key/0}}
      ]}.
 
 %% Test 1
