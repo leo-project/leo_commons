@@ -122,11 +122,18 @@ verify_pad_unpad_test_() ->
          DataList = [<<1,2,3,4,5,6>>, <<1,2,3>>, <<123>>, <<>>],
          AlgoList = [zero, rfc5652],
          % PadWidth can't be zero
-         PadWidth = [1, 2, 5, 8, 16],
+         PadWidth = [2, 5, 8, 16],
          MetaList = [{X, Y, Z} || X <- DataList, Y <- AlgoList, Z <- PadWidth],
          lists:foreach(fun({Data, Algo, Z}) ->
                            PadData = leo_ssec_base:pad(Algo, Z, Data),
-                           ?assertNotMatch({Data, rfc5652}, {PadData, Algo}),
+                           case Algo of
+                               rfc5652 ->
+                                   ?assertNotEqual(Data, PadData),
+                                   ?assertNotEqual(PadData, leo_ssec_base:pad(Algo, Z, PadData));
+                               zero ->
+                                   ?assertEqual(PadData, leo_ssec_base:pad(Algo, Z, PadData))
+                           end,
+                           ?assertEqual(0, size(PadData) rem Z),
                            ?assertEqual(Data, leo_ssec_base:unpad(Algo, PadData))
                        end, MetaList)
      end
