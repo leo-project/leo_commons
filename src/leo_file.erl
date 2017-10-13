@@ -34,7 +34,7 @@
 -export([file_unconsult/2, file_touch/1, file_get_mount_path/1, file_get_canonicalized_path/1,
          file_get_remain_disk/1, file_get_total_size/1, file_delete_all/1,
          dsize/1,
-         pread/3
+         pread/3, ensure_dir/1
         ]).
 
 %%--------------------------------------------------------------------
@@ -267,4 +267,48 @@ pread(IoDevice, Location, Number) ->
                                     {line, ?LINE},
                                     {body, {result, Cause}}]),
             {error, Cause}
+    end.
+
+%%----------------------------------------------------------------------
+%% @doc ensures that the directory name required to create D exists
+%%
+%% Fork the code from https://github.com/erlang/otp/blob/OTP-20.1.2/lib/stdlib/src/filelib.erl#L220-L251
+%% To fix https://github.com/leo-project/leofs/issues/878
+%%
+
+-spec ensure_dir(Name) -> 'ok' | {'error', Reason} when
+      Name :: file:name_all(),
+      Reason :: file:posix().
+ensure_dir("/") ->
+    ok;
+ensure_dir(F) ->
+    Dir = filename:dirname(F),
+    case filelib:is_dir(Dir) of
+        true ->
+            ok;
+        false when Dir =:= F ->
+            %% Protect against infinite loop
+            {error,einval};
+        false ->
+            Ret = ensure_dir(Dir),
+            case Ret of
+                {error, Cause} ->
+                    error_logger:error_msg("~p,~p,~p,~p~n",
+                                           [{module, ?MODULE_STRING},
+                                            {function, "ensure_dir/1"},
+                                            {line, ?LINE},
+                                            {body, {file, Dir}, {result, Cause}}]);
+                _ -> nop
+            end,
+            case file:make_dir(Dir) of
+                {error,eexist} = EExist ->
+                    case filelib:is_dir(Dir) of
+                        true ->
+                            ok;
+                        false ->
+                            EExist
+                    end;
+                Err ->
+                    Err
+            end
     end.
