@@ -269,13 +269,12 @@ pread(IoDevice, Location, Number) ->
             {error, Cause}
     end.
 
-%%----------------------------------------------------------------------
+
 %% @doc ensures that the directory name required to create D exists
 %%
 %% Fork the code from https://github.com/erlang/otp/blob/OTP-20.1.2/lib/stdlib/src/filelib.erl#L220-L251
 %% To fix https://github.com/leo-project/leofs/issues/878
 %%
-
 -spec ensure_dir(Name) -> 'ok' | {'error', Reason} when
       Name :: file:name_all(),
       Reason :: file:posix().
