@@ -101,6 +101,14 @@ any_to_binary_() ->
     ?assertEqual(TupleBin,    leo_misc:any_to_binary(Tuple)),
     ok.
 
+uuid_() ->
+    unsupported = leo_misc:uuid(v2),
+    Bin1 = leo_misc:uuid(v4),
+    ?assertEqual(byte_size(Bin1), 16),
+    Bin2 = leo_misc:uuid(v4),
+    ?assertEqual(byte_size(Bin2), 16),
+    ?assertNotEqual(Bin1, Bin2),
+    ok.
 
 -endif.
 
