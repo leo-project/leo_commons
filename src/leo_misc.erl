@@ -32,7 +32,8 @@
          binary_tokens/2,
          init_env/0, get_env/2, get_env/3, set_env/3,
          uuid/1,
-         any_to_binary/1
+         any_to_binary/1,
+         startup_notification/0
         ]).
 
 -include("leo_commons.hrl").
@@ -174,3 +175,20 @@ uuid(_) ->
 %% @private
 v4(R1, R2, R3, R4) ->
     <<R1:48, 4:4, R2:12, 2:2, R3:32, R4: 30>>.
+
+
+%% @doc Send "start-up complete" notification to systemd
+%%
+-spec(startup_notification() ->
+             ok).
+startup_notification() ->
+    case code:load_file(sd_notify) of
+        {module, sd_notify} ->
+            SDNotify = sd_notify,
+            SDNotify:sd_notify(0, "READY=1"),
+            code:soft_purge(sd_notify),
+            ok;
+        {error, _} ->
+            % Do nothing if sd_notify library is not available
+            ok
+    end.
