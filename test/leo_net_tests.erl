@@ -37,6 +37,43 @@
 %% TEST
 %%--------------------------------------------------------------------
 -ifdef(EUNIT).
+
+suite_test_() ->
+    {setup,
+     fun()  ->
+             ok
+     end,
+     fun(_) ->
+             ok
+     end,
+     [
+      {"Testing chunked_send (default)",
+       {timeout, timer:seconds(20),
+        fun() ->
+                {ok, LSocket} = gen_tcp:listen(0, [binary, {packet, 0},
+                                                   {active, false}]),
+                {ok, Port} = inet:port(LSocket),
+
+                ?debugMsg("===== Testing chunked_send ====="),
+                Bin = crypto:strong_rand_bytes(?TEST_SIZE),
+                ?debugMsg("===== Testing chunked_send (default) ====="),
+                spawn_link(?MODULE, client, [Port, Bin]),
+                {ok, CSocket} = gen_tcp:accept(LSocket),
+                {ok, Bin} = gen_tcp:recv(CSocket, ?TEST_SIZE),
+
+                ?debugMsg("===== Testing chunked_send (1 byte) ====="),
+                spawn_link(?MODULE, client, [Port, Bin, 1]),
+                {ok, CSocket2} = gen_tcp:accept(LSocket),
+                {ok, Bin} = gen_tcp:recv(CSocket2, ?TEST_SIZE),
+
+                ?debugMsg("===== Testing chunked_send (4 MB) ====="),
+                spawn_link(?MODULE, client, [Port, Bin, 4194304]),
+                {ok, CSocket3} = gen_tcp:accept(LSocket),
+                {ok, Bin} = gen_tcp:recv(CSocket3, ?TEST_SIZE),
+                ok
+        end}}
+     ]}.
+
 client(Port, Bin) ->
     {ok, Socket} = gen_tcp:connect("localhost", Port, [binary, {packet, 0}]),
     leo_net:chunked_send(gen_tcp, Socket, Bin).
@@ -44,29 +81,5 @@ client(Port, Bin) ->
 client(Port, Bin, ChunkSize) ->
     {ok, Socket} = gen_tcp:connect("localhost", Port, [binary, {packet, 0}]),
     leo_net:chunked_send(gen_tcp, Socket, Bin, ChunkSize).
-
-chunked_send_test() ->
-    ?debugMsg("===== Testing chunked_send ====="),
-    Bin = crypto:strong_rand_bytes(?TEST_SIZE),
-
-    {ok, LSocket} = gen_tcp:listen(0, [binary, {packet, 0},
-                                       {active, false}]),
-    {ok, Port} = inet:port(LSocket),
-
-    ?debugMsg("===== Testing chunked_send (default) ====="),
-    spawn_link(?MODULE, client, [Port, Bin]),
-    {ok, CSocket} = gen_tcp:accept(LSocket),
-    {ok, Bin} = gen_tcp:recv(CSocket, ?TEST_SIZE),
-
-    ?debugMsg("===== Testing chunked_send (1 byte) ====="),
-    spawn_link(?MODULE, client, [Port, Bin, 1]),
-    {ok, CSocket2} = gen_tcp:accept(LSocket),
-    {ok, Bin} = gen_tcp:recv(CSocket2, ?TEST_SIZE),
-
-    ?debugMsg("===== Testing chunked_send (4 MB) ====="),
-    spawn_link(?MODULE, client, [Port, Bin, 4194304]),
-    {ok, CSocket3} = gen_tcp:accept(LSocket),
-    {ok, Bin} = gen_tcp:recv(CSocket3, ?TEST_SIZE),
-    ok.
 
 -endif.
