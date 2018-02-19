@@ -1,15 +1,11 @@
-leo_commons
-===========
+# leo_commons
 
 [![Build Status](https://secure.travis-ci.org/leo-project/leo_commons.png?branch=master)](http://travis-ci.org/leo-project/leo_commons)
 
-Overview
---------
+## Overview
 
-* "leo_commons" is common modules for LeoFS and others. 
-* "leo-commons" uses the "rebar" build system. Makefile so that simply running "make" at the top level should work.
-  * [rebar](https://github.com/basho/rebar)
-* "leo-commons" requires Erlang R16B03-1 or higher
+* "leo_commons" is a common library for LeoFS and other purpose and uses [rebar](https://github.com/rebar/rebar) build system. Makefile so that simply running `make` at the top level should work.
+* [rabbitmq/rabbitmq-common/supervisor2](https://github.com/rabbitmq/rabbitmq-common/blob/master/src/supervisor2.erl) is included.
 
 ## Sponsors
 
