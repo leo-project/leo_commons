@@ -1,14 +1,12 @@
 .PHONY: deps test
 
-REBAR := ./rebar
+REBAR := ./rebar3
 APPS = erts kernel stdlib sasl compiler crypto mnesia os_mon
 PLT_FILE = .leo_commons_dialyzer_plt
 DOT_FILE = leo_commons.dot
 CALL_GRAPH_FILE = leo_commons.png
 
 all:
-	@$(REBAR) update-deps
-	@$(REBAR) get-deps
 	@$(REBAR) compile
 	@$(REBAR) xref skip_deps=true
 	@$(REBAR) eunit skip_deps=true
@@ -36,5 +34,4 @@ graphviz:
 clean:
 	@$(REBAR) clean skip_deps=true
 distclean:
-	@$(REBAR) delete-deps
 	@$(REBAR) clean

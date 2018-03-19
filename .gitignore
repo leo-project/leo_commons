@@ -7,3 +7,5 @@ leo_commons.png
 .rebar/
 doc/
 rst/
+_build/
+test.*
