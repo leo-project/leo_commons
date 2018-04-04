@@ -419,9 +419,9 @@ from_extension(".ttf") ->
 from_extension(".vcf") ->
     <<"text/x-vcard">>;
 from_extension(".webm") ->
-    <<"video/web">>;
+    <<"video/webm">>;
 from_extension(".webp") ->
-    <<"image/web">>;
+    <<"image/webp">>;
 from_extension(".woff") ->
     <<"application/x-font-woff">>;
 from_extension(".otf") ->
