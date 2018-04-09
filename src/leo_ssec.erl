@@ -22,11 +22,14 @@
 -module(leo_ssec).
 -author("kunal.tyagi").
 
+-export([encrypt_object/2, decrypt_object/4]).
 -export([gen_salt/1, gen_hash/3,
          verify_key/3,
          verify_block_encryption/3, verify_stream_encryption/3,
          block_encrypt_data/2, block_encrypt_data/3,
+         block_encrypt_data/4,
          block_decrypt_data/2, block_decrypt_data/3,
+         block_decrypt_data/4,
          stream_encrypt_data/3, stream_encrypt_data/4,
          stream_decrypt_data/3, stream_decrypt_data/4,
          verify_ssec_algorithm/1, verify_ssec_key/2
@@ -40,6 +43,40 @@
 %%-------------------------------------------------------------------------
 %% API
 %%-------------------------------------------------------------------------
+
+%% @doc High Level Wrapper for SSE-C encryption
+-spec(encrypt_object(Object, UserKey) ->
+        {ok, Cipher, Hash, Salt} when Object::crypto:io_data(),
+                                      UserKey::crypto:io_data(),
+                                      Cipher::binary(),
+                                      Hash::binary(),
+                                      Salt::binary()).
+encrypt_object(Object, UserKey) ->
+    {ok, Salt} = gen_salt(32),
+    <<IV:16/binary, _/binary>> = Salt,
+    {sha256, Hash} = gen_hash(sha256, UserKey, Salt),
+    AlgoMeta = {aes_cbc256, rfc5652, 16},
+    Cipher = block_encrypt_data(UserKey, Object, AlgoMeta, IV),
+    {ok, Cipher, Hash, Salt}.
+
+%% @doc High Level Wrapper for SSE-C decryption
+-spec(decrypt_object(Cipher, UserKey, Hash, Salt) ->
+        {error, invalid}|{ok, Object} 
+          when Object::crypto:io_data(),
+               UserKey::crypto:io_data(),
+               Cipher::binary(),
+               Hash::binary(),
+               Salt::binary()).
+decrypt_object(Cipher, UserKey, Hash, Salt) ->
+    case verify_key(UserKey, Salt, {sha256, Hash}) of
+        false ->
+            {error, invalid};
+        true ->
+            <<IV:16/binary, _/binary>> = Salt,
+            AlgoMeta = {aes_cbc256, rfc5652, 16},
+            Object = block_decrypt_data(UserKey, Cipher, AlgoMeta, IV),
+            {ok, Object}
+    end.
 
 %% @doc Contains all details about the algorithm and related options
 %%      Ensures simple encryption, decryption and storage op options
@@ -127,6 +164,20 @@ block_encrypt_data(UserKey, Data, AlgoMetaData) ->
     PadData = pad(Pad, PadLen, Data),
     crypto:block_encrypt(Algo, UserKey, PadData).
 
+%% @doc block encrypt data using key and custome settings with IV
+%% 
+-spec(block_encrypt_data(UserKey, Data, AlgoMetaData, IV) ->
+             CipherPadData when UserKey::crypto:block_key(),
+                                Data::crypto:io_data(),
+                                AlgoMetaData::algo_metadata(),
+                                IV::crypto:io_data(),
+                                CipherPadData::binary()).
+block_encrypt_data(UserKey, Data, AlgoMetaData, IV) ->
+    {Algo, Pad, PadLen} = AlgoMetaData,
+    PadData = pad(Pad, PadLen, Data),
+    crypto:block_encrypt(Algo, UserKey, IV, PadData).
+
+
 %% @doc stream encrypt data using user key
 %%
 -spec(stream_encrypt_data(State, Data) ->
@@ -180,6 +231,19 @@ block_decrypt_data(UserKey, Data) ->
 block_decrypt_data(UserKey, Data, AlgoMetaData) ->
     {Algo, Pad, _PadLen} = AlgoMetaData,
     PadData = crypto:block_decrypt(Algo, UserKey, Data),
+    unpad(Pad, PadData).
+
+%% @doc block decrypt data using key and custome settings with IV
+%%
+-spec(block_decrypt_data(UserKey, Data, AlgoMetaData, IV) ->
+             PlainData when UserKey::crypto:block_key(),
+                            Data::binary(),
+                            AlgoMetaData::algo_metadata(),
+                            IV::binary(),
+                            PlainData::iodata()).
+block_decrypt_data(UserKey, Data, AlgoMetaData, IV) ->
+    {Algo, Pad, _PadLen} = AlgoMetaData,
+    PadData = crypto:block_decrypt(Algo, UserKey, IV, Data),
     unpad(Pad, PadData).
 
 %% @doc stream decrypt data using the user key

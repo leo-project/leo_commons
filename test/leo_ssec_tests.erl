@@ -52,7 +52,10 @@ run_test_() ->
       {"test verify_ssec_algorithm/1",
        {timeout, timer:seconds(3), fun test_verify_ssec_algorithm/0}},
       {"test verify_ssec_key/1",
-       {timeout, timer:seconds(3), fun test_verify_ssec_key/0}}
+       {timeout, timer:seconds(3), fun test_verify_ssec_key/0}},
+      {"test encrypt_object/2 and decrypt_object/4",
+       {timeout, timer:seconds(3),
+        fun() -> check_wrapper(fun check_en_de/1, 1, 256) end}}
      ]}.
 
 %% Test 1
@@ -128,7 +131,7 @@ test_verify_ssec_key() ->
     ?assertMatch({false, _}, leo_ssec:verify_ssec_key(Base64Key1,
                                                       {md5, "ABCD" ++ Base64Checksum1})).
 
-%% Test 6
+%% Test 7
 -spec(verify_pad_unpad_test_() -> boolean()).
 verify_pad_unpad_test_() ->
     [
@@ -154,5 +157,13 @@ verify_pad_unpad_test_() ->
                            end, MetaList)
      end
     ].
+
+%% Test 8
+check_en_de(Len) ->
+    RBin = crypto:strong_rand_bytes(Len),
+    Key = crypto:strong_rand_bytes(32),
+    {ok, Cipher, Hash, Salt} = leo_ssec:encrypt_object(RBin, Key),
+    {ok, RBin} = leo_ssec:decrypt_object(Cipher, Key, Hash, Salt),
+     ok.
 
 -endif.
