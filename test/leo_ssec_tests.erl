@@ -1,8 +1,8 @@
 %%======================================================================
 %%
-%% Leo Commons
+%% Leo Commons / LeoSSEC Test
 %%
-%% Copyright (c) 2012-2017 Rakuten, Inc.
+%% Copyright (c) 2012-2018 Rakuten, Inc.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -22,6 +22,7 @@
 -module(leo_ssec_tests).
 -author("kunal.tyagi").
 
+-include("leo_commons.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
 -ifdef(EUNIT).
@@ -65,6 +66,7 @@ check_salt(Len) when Len >= 32, Len =< 64 ->
 check_salt(Len) ->
     ?assertMatch({error, _}, leo_ssec:gen_salt(Len)).
 
+
 %% Test 2
 check_hash(Len) ->
     AlgoList = [md5, sha, sha256],
@@ -72,11 +74,19 @@ check_hash(Len) ->
     {ok, Salt1} = leo_ssec:gen_salt(Len),
     {ok, Salt2} = leo_ssec:gen_salt(Len),
     %% Check Hash algo actually generates hash
-    lists:foreach(fun(Algo) -> ?assertEqual({Algo, crypto:hmac(Algo, Key, Salt1)}, leo_ssec:gen_hash(Algo, Salt1, Key)) end, AlgoList),
+    lists:foreach(fun(Algo) ->
+                          ?assertEqual({Algo, crypto:hmac(Algo, Key, Salt1)},
+                                       leo_ssec:gen_hash(Algo, Salt1, Key))
+                  end, AlgoList),
     %% Check Hash is diff for diff salts
-    HashList = lists:map(fun(Algo) -> {leo_ssec:gen_hash(Algo, Key, Salt1), leo_ssec:gen_hash(Algo, Key, Salt2)} end, AlgoList),
-    lists:foreach(fun({Hash1, Hash2}) -> ?assertNotEqual(Hash1, Hash2) end,
-                  HashList).
+    HashList = lists:map(fun(Algo) ->
+                                 {leo_ssec:gen_hash(Algo, Key, Salt1),
+                                  leo_ssec:gen_hash(Algo, Key, Salt2)}
+                         end, AlgoList),
+    lists:foreach(fun({Hash1, Hash2}) ->
+                          ?assertNotEqual(Hash1, Hash2)
+                  end, HashList).
+
 
 %% Test 3
 verify_key(Len) ->
@@ -84,7 +94,9 @@ verify_key(Len) ->
     {ok, Key} = leo_ssec:gen_salt(64),
     {ok, Salt} = leo_ssec:gen_salt(Len),
     HashList = lists:map(fun(Algo) -> leo_ssec:gen_hash(Algo, Key, Salt) end, AlgoList),
-    lists:foreach(fun(Hash) -> ?assert(leo_ssec:verify_key(Key, Salt, Hash)) end, HashList).
+    lists:foreach(fun(Hash) ->
+                          ?assert(leo_ssec:verify_key(Key, Salt, Hash))
+                  end, HashList).
 
 
 %% Test 4
@@ -93,11 +105,14 @@ verify_block_encryption_test_() ->
     [
      fun() ->
              AlgoList = [aes_ecb],
-             PadType = [zero, rfc5652],
+             PadTypeList = [zero, rfc5652],
              PadLen = 16,
              {ok, Key} = leo_ssec:gen_salt(32),
              Msg = <<"Test Binary Stream">>,
-             MetaDataList = [{Algo, Pad, PadLen} || Algo <- AlgoList, Pad <- PadType],
+             MetaDataList = [#algo_metadata{algorithm = Algo,
+                                            pad_type = PadType,
+                                            pad_len = PadLen}
+                             || Algo <- AlgoList, PadType <- PadTypeList],
              lists:foreach(fun(X) ->
                                    ?assertMatch({true, _},
                                                 leo_ssec:verify_block_encryption(Key, Msg, X))
@@ -164,6 +179,6 @@ check_en_de(Len) ->
     Key = crypto:strong_rand_bytes(32),
     {ok, Cipher, Hash, Salt} = leo_ssec:encrypt_object(RBin, Key),
     {ok, RBin} = leo_ssec:decrypt_object(Cipher, Key, Hash, Salt),
-     ok.
+    ok.
 
 -endif.

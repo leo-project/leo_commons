@@ -2,7 +2,7 @@
 %%
 %% LeoFS Commons
 %%
-%% Copyright (c) 2012-2017 Rakuten, Inc.
+%% Copyright (c) 2012-2018 Rakuten, Inc.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -76,3 +76,13 @@
 
 %% leo_file related constants
 -define(PREAD_TIMEOUT, timer:seconds(1)).
+
+
+%% @doc initialization-vector's default length (sse-c)
+-define(IV_LEN, 16).
+
+%% @doc SSE-C's algorith metadata
+-record(algo_metadata, {algorithm = aes_ecb :: rc4 | des_ecb | blowfish_ecb | aes_ecb,
+                        pad_type = rfc5652 :: zero | rfc5652,
+                        pad_len = ?IV_LEN :: pos_integer()
+                       }).
