@@ -34,7 +34,8 @@ misc_test_() ->
      fun get_value_/0,
      fun binary_tokens_/0,
      fun env_table_/0,
-     fun any_to_binary_/0
+     fun any_to_binary_/0,
+     fun uuid_/0
     ].
 
 
@@ -111,4 +112,3 @@ uuid_() ->
     ok.
 
 -endif.
-
