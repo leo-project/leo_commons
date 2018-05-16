@@ -2,7 +2,7 @@
 %%
 %% LeoFS Commons
 %%
-%% Copyright (c) 2012-2017 Rakuten, Inc.
+%% Copyright (c) 2012-2018 Rakuten, Inc.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -23,22 +23,10 @@
 %%
 %%======================================================================
 
--record(cluster_node_status, {
-          type                :: gateway | storage,
-          version = []        :: string(),
-          dirs    = []        :: list(),
-          avs     = []        :: list(), %% [{dir, # of avs}]
-          num_of_read_metas   :: integer(),
-          disk_sync_interval  :: integer(),
-          ring_checksum       :: string(),
-          statistics          :: [any()]
-         }).
-
-%% leo_mneisa:
+%% For leo_mneisa
 -define(EXPORT_TYPE_TUPLE, tuple).
 -define(EXPORT_TYPE_JSON,  json).
 -type(export_type() :: ?EXPORT_TYPE_TUPLE | ?EXPORT_TYPE_JSON).
-
 
 %% Environment values
 -define(ETS_ENV_TABLE, 'leo_env_values').
@@ -73,6 +61,3 @@
             {ok, EnvQueueDir} -> EnvQueueDir;
             _ -> "queue"
         end).
-
-%% leo_file related constants
--define(PREAD_TIMEOUT, timer:seconds(1)).
