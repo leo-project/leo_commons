@@ -36,7 +36,6 @@ pread_1_test_() ->
     [
      fun() ->
              os:cmd("rm " ++ ?TEST_FILE_1),
-
              {ok, IoDevice} = file:open(?TEST_FILE_1, [raw, read, write, binary, append]),
              ok = file:pwrite(IoDevice, 0, crypto:strong_rand_bytes(128)),
 
@@ -56,6 +55,7 @@ pread_1_test_() ->
              eof = leo_file:pread(IoDevice, 129, 32),
 
              ok = file:close(IoDevice),
+             os:cmd("rm " ++ ?TEST_FILE_1),
              ok
      end
     ].
@@ -93,6 +93,7 @@ pread_2() ->
            end)
      || _ <- lists:seq(1, Concurrency)],
     timer:sleep(timer:seconds(3)),
+    os:cmd("rm " ++ ?TEST_FILE_2),
     ok.
 
 file_get_canonicalized_path_test_() ->
