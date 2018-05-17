@@ -23,7 +23,7 @@
 %%
 %%======================================================================
 
-%% For leo_mneisa
+%% For leo_mnesia
 -define(EXPORT_TYPE_TUPLE, tuple).
 -define(EXPORT_TYPE_JSON,  json).
 -type(export_type() :: ?EXPORT_TYPE_TUPLE | ?EXPORT_TYPE_JSON).
@@ -65,25 +65,26 @@
         end).
 
 
-%% PUT-request parameters to be able to communicate between LeoGateway and LeoStorage
--record(put_request, {addr_id = 0 :: non_neg_integer(),   %% ring-address id
-                      key = <<>> :: binary(),             %% object's name
-                      data = <<>> :: binary(),            %% blob
-                      meta = <<>> :: binary(),            %% custom-metadata (user defined metadata)
-                      ksize = 0 :: non_neg_integer(),     %% length of object name
-                      dsize = 0 :: non_neg_integer(),     %% length of blob
-                      msize = 0 :: non_neg_integer(),     %% length of custom-metadata
-                      timestamp = 0 :: non_neg_integer(), %% timestamp
-                      csize = 0 :: non_neg_integer(),     %% length of chunked object
-                      cnumber = 0 :: non_neg_integer(),   %% total number of chunked objects
-                      cindex = 0 :: non_neg_integer(),    %% index of chunked objects
-                      checksum = 0 :: non_neg_integer(),  %% object's checksum
+%% Request parameters to be able to communicate between LeoGateway and LeoStorage
+-record(request, {method :: atom(),                   %% http-verb: [get|post|put|delete|head]
+                  addr_id = 0 :: non_neg_integer(),   %% ring-address id
+                  key = <<>> :: binary(),             %% object's name
+                  data = <<>> :: binary(),            %% blob
+                  meta = <<>> :: binary(),            %% custom-metadata (user defined metadata)
+                  ksize = 0 :: non_neg_integer(),     %% length of object name
+                  dsize = 0 :: non_neg_integer(),     %% length of blob
+                  msize = 0 :: non_neg_integer(),     %% length of custom-metadata
+                  timestamp = 0 :: non_neg_integer(), %% timestamp
+                  csize = 0 :: non_neg_integer(),     %% length of chunked object
+                  cnumber = 0 :: non_neg_integer(),   %% total number of chunked objects
+                  cindex = 0 :: non_neg_integer(),    %% index of chunked objects
+                  checksum = 0 :: non_neg_integer(),  %% object's checksum
 
-                      %% SSEC-related parameters
-                      ssec_algorithm = <<>> :: binary(),        %% Encryption algorithm (default: AES256)
-                      ssec_key = <<>> :: binary(),              %% 256-bit, base64-encoded encryption key
-                      ssec_key_hash = <<>> :: binary(),         %% Base64-encoded 128-bit MD5 digest of the encryption key
-                      ssec_algorithm_cp_src = <<>> :: binary(), %% Encryption algorithm (default: AES 256) of copy-source
-                      ssec_key_cp_src = <<>> :: binary(),       %% 256-bit, base64-encoded encryption key of copy-source
-                      ssec_key_hash_cp_src = <<>> :: binary()   %% Base64-encoded 128-bit MD5 digest of the encryption key of copy-source
-                     }).
+                  %% SSEC-related parameters
+                  ssec_algorithm = <<>> :: binary(),        %% Encryption algorithm (default: AES256)
+                  ssec_key = <<>> :: binary(),              %% 256-bit, base64-encoded encryption key
+                  ssec_key_hash = <<>> :: binary(),         %% Base64-encoded 128-bit MD5 digest of the encryption key
+                  ssec_algorithm_cp_src = <<>> :: binary(), %% Encryption algorithm (default: AES 256) of copy-source
+                  ssec_key_cp_src = <<>> :: binary(),       %% 256-bit, base64-encoded encryption key of copy-source
+                  ssec_key_hash_cp_src = <<>> :: binary()   %% Base64-encoded 128-bit MD5 digest of the encryption key of copy-source
+                 }).
