@@ -83,6 +83,10 @@
                   checksum = 0 :: non_neg_integer(),  %% object's checksum
                   req_id = 0 :: non_neg_integer(),    %% request ID
 
+                  %% Optional Parameters
+                  start_pos = 0 :: integer(),  %% Start Postition of an Object for range-get
+                  end_pos = 0 :: integer(),    %% End Postition of an Object for range-get
+
                   %% SSEC-related parameters
                   ssec_algorithm = <<>> :: binary(),        %% Encryption algorithm (default: AES256)
                   ssec_key = <<>> :: binary(),              %% 256-bit, base64-encoded encryption key
