@@ -66,7 +66,9 @@
 
 
 %% Request parameters to be able to communicate between LeoGateway and LeoStorage
--record(request, {method :: atom(),                   %% http-verb: [get|post|put|delete|head]
+-record(request, {
+                  %% Common Parameters
+                  method :: atom(),                   %% http-verb: [get|post|put|delete|head]
                   addr_id = 0 :: non_neg_integer(),   %% ring-address id
                   key = <<>> :: binary(),             %% object's name
                   data = <<>> :: binary(),            %% blob
@@ -79,6 +81,7 @@
                   cnumber = 0 :: non_neg_integer(),   %% total number of chunked objects
                   cindex = 0 :: non_neg_integer(),    %% index of chunked objects
                   checksum = 0 :: non_neg_integer(),  %% object's checksum
+                  req_id = 0 :: non_neg_integer(),    %% request ID
 
                   %% SSEC-related parameters
                   ssec_algorithm = <<>> :: binary(),        %% Encryption algorithm (default: AES256)
@@ -87,4 +90,6 @@
                   ssec_algorithm_cp_src = <<>> :: binary(), %% Encryption algorithm (default: AES 256) of copy-source
                   ssec_key_cp_src = <<>> :: binary(),       %% 256-bit, base64-encoded encryption key of copy-source
                   ssec_key_hash_cp_src = <<>> :: binary()   %% Base64-encoded 128-bit MD5 digest of the encryption key of copy-source
+
+                  %% @TODO Erasure Code-related parameters
                  }).
