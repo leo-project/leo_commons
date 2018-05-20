@@ -84,8 +84,11 @@
                   req_id = 0 :: non_neg_integer(),    %% request ID
 
                   %% Optional Parameters
-                  start_pos = 0 :: integer(),  %% Start Postition of an Object for range-get
-                  end_pos = 0 :: integer(),    %% End Postition of an Object for range-get
+                  start_pos = 0 :: integer(),        %% [range-get] start postition of an Object
+                  end_pos = 0 :: integer(),          %% [range-get] end postition of an Object for range-get
+                  delimitar = <<>> :: binary(),      %% [directory-op] delimitar
+                  marker = <<>> :: binary(),         %% [directory-op] marker
+                  max_keys = 0 :: non_neg_integer(), %% [directory-op] maximal number of keys
 
                   %% SSEC-related parameters
                   ssec_algorithm = <<>> :: binary(),        %% Encryption algorithm (default: AES256)
