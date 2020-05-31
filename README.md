@@ -9,4 +9,5 @@
 
 ## Sponsors
 
-LeoProject/LeoFS is sponsored by [Rakuten, Inc.](http://global.rakuten.com/corp/) and suppoerted by [Rakuten Institute of Technology](http://rit.rakuten.co.jp/).
+* January, 2019 - : [Lions Data, Ltd.](https://lions-data.com)
+* Februay, 2010 - December, 2018: [Rakuten, Inc.](http://global.rakuten.com/corp/)
