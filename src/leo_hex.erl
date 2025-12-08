@@ -176,10 +176,10 @@ integer_to_raw_binary(I, Len, Acc) ->
              string() when I::integer(),
                            Len::pos_integer()).
 integer_to_hex(I, Len) ->
-    Hex = string:to_lower(erlang:integer_to_list(I, 16)),
+    Hex = string:lowercase(erlang:integer_to_list(I, 16)),
     LenDiff = Len - length(Hex),
     case LenDiff > 0 of
-        true  -> string:chars($0, LenDiff) ++ Hex;
+        true  -> lists:duplicate(LenDiff, $0) ++ Hex;
         false -> Hex
     end.
 
