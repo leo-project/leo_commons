@@ -91,8 +91,8 @@ file_get_mount_path([_H|Rest], DiskData) ->
                   "/" ->
                       "/";
                   Other ->
-                      Len = string:len(Other),
-                      string:left(Other, Len - 1)
+                      Len = length(Other),
+                      lists:sublist(Other, Len - 1)
               end,
     case lists:keyfind(TrimDir, 1, DiskData) of
         false ->
@@ -127,11 +127,16 @@ file_get_canonicalized_path(FilePath) ->
 
 file_get_canonicalized_path(Path, Dest) ->
     %% remove the trailing slash
-    Rest = string:strip(Path, right, $/),
+    Rest = string:trim(Path, trailing, "/"),
     case file:read_link_info(Rest) of
         {ok, #file_info{type = symlink}} ->
             {ok, New} = file:read_link_all(Rest),
-            file_get_canonicalized_path(New, Dest);
+            %% If symlink target is relative, make it absolute
+            AbsNew = case filename:pathtype(New) of
+                         absolute -> New;
+                         relative -> filename:join(filename:dirname(Rest), New)
+                     end,
+            file_get_canonicalized_path(AbsNew, Dest);
         {ok, _} ->
             Base = filename:basename(Rest),
             case filename:dirname(Rest) of

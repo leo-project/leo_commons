@@ -75,7 +75,7 @@ check_hash(Len) ->
     {ok, Salt2} = leo_ssec:gen_salt(Len),
     %% Check Hash algo actually generates hash
     lists:foreach(fun(Algo) ->
-                          ?assertEqual({Algo, crypto:hmac(Algo, Key, Salt1)},
+                          ?assertEqual({Algo, crypto:mac(hmac, Algo, Key, Salt1)},
                                        leo_ssec:gen_hash(Algo, Salt1, Key))
                   end, AlgoList),
     %% Check Hash is diff for diff salts

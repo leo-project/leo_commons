@@ -106,7 +106,7 @@ gen_salt(Length) ->
                               Mac::binary()).
 gen_hash(Type, UserKey, Salt) ->
     %% save the algorithm used, eg md5, sha, sha256
-    {Type, crypto:hmac(Type, Salt, UserKey)}.
+    {Type, crypto:mac(hmac, Type, Salt, UserKey)}.
 
 
 %% @doc verify that the userkey and salt combination matches the provided hash
@@ -140,7 +140,7 @@ block_encrypt_data(UserKey, Data, #algo_metadata{algorithm = Algo,
                                                  pad_type = PadType,
                                                  pad_len = PadLen}) ->
     PadData = pad(PadType, PadLen, Data),
-    crypto:block_encrypt(Algo, UserKey, PadData).
+    crypto:crypto_one_time(convert_algo(Algo), UserKey, PadData, true).
 
 %% @doc block encrypt data using key and custome settings with IV
 -spec(block_encrypt_data(UserKey, Data, AlgoMetaData, IV) ->
@@ -153,26 +153,27 @@ block_encrypt_data(UserKey, Data, #algo_metadata{algorithm = Algo,
                                                  pad_type = PadType,
                                                  pad_len = PadLen}, IV) ->
     PadData = pad(PadType, PadLen, Data),
-    crypto:block_encrypt(Algo, UserKey, IV, PadData).
+    crypto:crypto_one_time(convert_algo(Algo), UserKey, IV, PadData, true).
 
 
 %% @doc stream encrypt data using user key
 -spec(stream_encrypt_data(State, Data) ->
-             {State, CipherData} when State::crypto:opaque(),
+             {State, CipherData} when State::crypto:crypto_state(),
                                       Data::crypto:io_data(),
                                       CipherData::binary()).
 stream_encrypt_data(State, Data) ->
-    crypto:stream_encrypt(State, Data).
+    {State, crypto:crypto_update(State, Data)}.
 
 %% @doc stream encrypt data using the user key and settings (no default)
 -spec(stream_encrypt_data(UserKey, Data, AlgoMetaData) ->
              {State, CipherData} when UserKey::crypto:io_data(),
                                       Data::crypto:io_data(),
                                       AlgoMetaData::#algo_metadata{},
-                                      State::{state, crypto:opaque()},
+                                      State::{state, crypto:crypto_state()},
                                       CipherData::binary()).
 stream_encrypt_data(UserKey, Data, #algo_metadata{algorithm = Algo}) ->
-    stream_encrypt_data(crypto:stream_init(Algo, UserKey), Data).
+    State = crypto:crypto_init(convert_stream_algo(Algo), UserKey, true),
+    stream_encrypt_data(State, Data).
 
 %% @doc stream encrypt data using the user key and init vector
 -spec(stream_encrypt_data(UserKey, Data, IVec, AlgoMetaData) ->
@@ -180,10 +181,11 @@ stream_encrypt_data(UserKey, Data, #algo_metadata{algorithm = Algo}) ->
                                       Data::crypto:io_data(),
                                       IVec::binary(),
                                       AlgoMetaData::#algo_metadata{},
-                                      State::crypto:opaque(),
+                                      State::crypto:crypto_state(),
                                       CipherData::binary()).
 stream_encrypt_data(UserKey, Data, IVec, #algo_metadata{algorithm = Algo}) ->
-    stream_encrypt_data(crypto:stream_init(Algo, UserKey, IVec), Data).
+    State = crypto:crypto_init(convert_stream_algo(Algo), UserKey, IVec, true),
+    stream_encrypt_data(State, Data).
 
 
 %% @doc block decrypt data using the user key
@@ -202,7 +204,7 @@ block_decrypt_data(UserKey, Data) ->
                             PlainData::iodata()).
 block_decrypt_data(UserKey, Data, #algo_metadata{algorithm = Algo,
                                                  pad_type = PadType}) ->
-    PadData = crypto:block_decrypt(Algo, UserKey, Data),
+    PadData = crypto:crypto_one_time(convert_algo(Algo), UserKey, Data, false),
     unpad(PadType, PadData).
 
 %% @doc block decrypt data using key and custome settings with IV
@@ -214,7 +216,7 @@ block_decrypt_data(UserKey, Data, #algo_metadata{algorithm = Algo,
                             PlainData::iodata()).
 block_decrypt_data(UserKey, Data, #algo_metadata{algorithm = Algo,
                                                  pad_type = PadType}, IV) ->
-    PadData = crypto:block_decrypt(Algo, UserKey, IV, Data),
+    PadData = crypto:crypto_one_time(convert_algo(Algo), UserKey, IV, Data, false),
     unpad(PadType, PadData).
 
 
@@ -223,14 +225,15 @@ block_decrypt_data(UserKey, Data, #algo_metadata{algorithm = Algo,
              {State, CipherData} when UserKey::{key, crypto:io_data()} | State,
                                       Data::crypto:io_data(),
                                       AlgoMetaData::#algo_metadata{},
-                                      State::{state, crypto:opaque()},
+                                      State::{state, crypto:crypto_state()},
                                       CipherData::binary()).
 stream_decrypt_data({state, OldState}, Data) ->
-    crypto:stream_decrypt(OldState, Data);
+    {OldState, crypto:crypto_update(OldState, Data)};
 stream_decrypt_data({key, UserKey}, Data) ->
     stream_decrypt_data(UserKey, Data, #algo_metadata{}).
 stream_decrypt_data({key, UserKey}, Data, #algo_metadata{algorithm = Algo}) ->
-    stream_decrypt_data({state, crypto:stream_init(Algo, UserKey)}, Data).
+    State = crypto:crypto_init(convert_stream_algo(Algo), UserKey, false),
+    stream_decrypt_data({state, State}, Data).
 
 %% @doc stream decrypt data using the user key and init vector
 -spec(stream_decrypt_data(UserKey, Data, IVec, AlgoMetaData) ->
@@ -238,10 +241,11 @@ stream_decrypt_data({key, UserKey}, Data, #algo_metadata{algorithm = Algo}) ->
                                       Data::crypto:io_data(),
                                       IVec::binary(),
                                       AlgoMetaData::#algo_metadata{},
-                                      State::{state, crypto:opaque()},
+                                      State::{state, crypto:crypto_state()},
                                       CipherData::binary()).
 stream_decrypt_data({key, UserKey}, Data, IVec, #algo_metadata{algorithm = Algo}) ->
-    stream_decrypt_data({state, crypto:stream_init(Algo, UserKey, IVec)}, Data).
+    State = crypto:crypto_init(convert_stream_algo(Algo), UserKey, IVec, false),
+    stream_decrypt_data({state, State}, Data).
 
 
 %% @doc verify that block data is encrypted correctly
@@ -420,3 +424,18 @@ unpad_rfc5652(Binary) ->
         false ->
             Binary
     end.
+
+
+%% @doc Convert legacy algorithm names to OTP 24+ names
+%% @private
+convert_algo(aes_ecb) -> aes_256_ecb;
+convert_algo(aes_cbc256) -> aes_256_cbc;
+convert_algo(des_ecb) -> des_ecb;
+convert_algo(blowfish_ecb) -> blowfish_ecb;
+convert_algo(Other) -> Other.
+
+%% @doc Convert legacy stream algorithm names to OTP 24+ names
+%% @private
+convert_stream_algo(rc4) -> rc4;
+convert_stream_algo(aes_ctr) -> aes_256_ctr;
+convert_stream_algo(Other) -> Other.

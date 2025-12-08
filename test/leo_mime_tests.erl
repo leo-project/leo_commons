@@ -42,7 +42,7 @@ guess_() ->
     <<"application/octet-stream">> = leo_mime:guess_mime(""),
     <<"application/octet-stream">> = leo_mime:guess_mime(<<>>),
     <<"application/octet-stream">> = leo_mime:guess_mime(<<"/path/to/x.unknown">>),
-    <<"application/zip">> = leo_mime:guess_mime(<<".zip">>),
+    <<"application/zip">> = leo_mime:guess_mime(<<"file.zip">>),
     <<"text/html">> = leo_mime:guess_mime(<<"/path/to/x.html">>),
     <<"image/gif">> = leo_mime:guess_mime(<<"images/dir/hoge_hoge.gif">>),
     <<"image/png">> = leo_mime:guess_mime(<<"images/dir/hoge_hoge.png">>),
