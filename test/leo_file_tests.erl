@@ -99,7 +99,7 @@ file_get_canonicalized_path_test_() ->
     {foreach,
      fun() ->
         % setup
-        string:strip(os:cmd("mktemp -d"), right, $\n)
+        string:trim(os:cmd("mktemp -d"), trailing, "\n")
      end,
      fun(TmpDir) ->
         % teardown
@@ -113,17 +113,19 @@ file_get_canonicalized_path_test_() ->
                           ]]}.
 incl_one_symlink_(TmpDir) ->
     Link = filename:join(TmpDir, "symlink"),
-    Expected = filename:join([TmpDir, "path", "to", "file"]),
-    ok = filelib:ensure_dir(Expected),
-    os:cmd("touch " ++ Expected),
-    ok = file:make_symlink(Expected, Link),
+    ExpectedRaw = filename:join([TmpDir, "path", "to", "file"]),
+    ok = filelib:ensure_dir(ExpectedRaw),
+    os:cmd("touch " ++ ExpectedRaw),
+    ok = file:make_symlink(ExpectedRaw, Link),
     {ok, Actual} = leo_file:file_get_canonicalized_path(Link),
+    %% Canonicalize expected path too (e.g., /var -> /private/var on macOS)
+    {ok, Expected} = leo_file:file_get_canonicalized_path(ExpectedRaw),
     ?assertEqual(Expected, Actual),
     ok.
 
 incl_nested_symlink_(TmpDir) ->
-    Expected = filename:join([TmpDir, "everything", "in", "its", "right", "place"]),
-    ExpectedDir = filename:dirname(Expected),
+    ExpectedRaw = filename:join([TmpDir, "everything", "in", "its", "right", "place"]),
+    ExpectedDir = filename:dirname(ExpectedRaw),
     Middle = filename:join([TmpDir, "some", "other", "place"]),
     MiddleDir = filename:dirname(Middle),
     Link1 = filename:join(TmpDir, "symlink1"),
@@ -134,13 +136,15 @@ incl_nested_symlink_(TmpDir) ->
     %% ${TMPDIR}/some/other/symlink2 -> ${TMPDIR}/everything/in/its/right
     %% So
     %% ${TMPDIR}/symlink1/symlink2/place -> ${TMPDIR}/everything/in/its/right/place
-    ok = filelib:ensure_dir(Expected),
+    ok = filelib:ensure_dir(ExpectedRaw),
     ok = filelib:ensure_dir(Middle),
-    os:cmd("touch " ++ Expected),
+    os:cmd("touch " ++ ExpectedRaw),
     ok = file:make_symlink(MiddleDir, Link1),
     ok = file:make_symlink(ExpectedDir, Link2),
     Src = filename:join([TmpDir, "symlink1", "symlink2", "place"]),
     {ok, Actual} = leo_file:file_get_canonicalized_path(Src),
+    %% Canonicalize expected path too (e.g., /var -> /private/var on macOS)
+    {ok, Expected} = leo_file:file_get_canonicalized_path(ExpectedRaw),
     ?assertEqual(Expected, Actual),
     ok.
 
@@ -156,7 +160,7 @@ run(Dev,_MaxPos,_SizeToRead, NumReadOp, NumReadOp) ->
     file:close(Dev),
     ok;
 run(Dev, MaxPos, SizeToRead, NumReadOp, CurNum) ->
-    Pos = random:uniform(MaxPos - 1),
+    Pos = rand:uniform(MaxPos - 1),
     case leo_file:pread(Dev, Pos, SizeToRead) of
         {error,_} ->
             void;

@@ -256,7 +256,10 @@ is_amz_header(<<"X-Amz-", _Rest/binary>>) -> true;
 is_amz_header(Key) when is_binary(Key) ->
     false;
 is_amz_header(Key) ->
-    (string:str(string:to_lower(Key), "x-amz-") == 1).
+    case string:prefix(string:lowercase(Key), "x-amz-") of
+        nomatch -> false;
+        _ -> true
+    end.
 
 
 %% @doc Get weekday as string

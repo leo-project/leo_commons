@@ -38,7 +38,7 @@ guess_mime([]) ->
 guess_mime(<<>>) ->
     <<"application/octet-stream">>;
 guess_mime(Path) ->
-    case from_extension(string:to_lower(binary_to_list(filename:extension(Path)))) of
+    case from_extension(string:lowercase(binary_to_list(filename:extension(Path)))) of
         undefined -> <<"application/octet-stream">>;
         Mime -> Mime
     end.

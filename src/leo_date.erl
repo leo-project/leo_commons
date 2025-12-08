@@ -71,10 +71,9 @@ zone(Val) when Val >= 0 ->
 %% @doc Format date
 %%
 date_format() ->
-    Timestamp = os:timestamp(),
-    {_,_,MicroSec} = Timestamp,
+    {_,_,MicroSec} = os:timestamp(),
     GregorianSeconds  = calendar:datetime_to_gregorian_seconds(
-                          calendar:now_to_universal_time(Timestamp)),
+                          calendar:universal_time()),
 
     {{Year, Month, Date},{Hour,Min,Sec}} =
         calendar:universal_time_to_local_time(
@@ -120,10 +119,8 @@ unixtime() ->
 -spec(unixtime_to_greg_seconds(UnixTime) ->
              pos_integer() when UnixTime :: pos_integer()).
 unixtime_to_greg_seconds(UnixTime) ->
-    M = leo_math:floor(UnixTime / 1000000),
-    S = (UnixTime - M * 1000000),
-    calendar:datetime_to_gregorian_seconds(
-      calendar:now_to_universal_time({M,S,0})).
+    BaseSeconds = calendar:datetime_to_gregorian_seconds({{1970,1,1},{0,0,0}}),
+    BaseSeconds + UnixTime.
 
 
 %% @doc Convert data from a gregorian seconds to a unixtime

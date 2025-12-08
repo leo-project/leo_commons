@@ -1,40 +1,46 @@
 .PHONY: deps test
 
-REBAR := ./rebar
+REBAR := rebar3
 APPS = erts kernel stdlib sasl compiler crypto mnesia os_mon
 PLT_FILE = .leo_commons_dialyzer_plt
 DOT_FILE = leo_commons.dot
 CALL_GRAPH_FILE = leo_commons.png
 
-all:
-	@$(REBAR) update-deps
-	@$(REBAR) get-deps
-	@$(REBAR) compile
-	@$(REBAR) xref skip_deps=true
-	@$(REBAR) eunit skip_deps=true
+all: compile xref eunit
+
 compile:
-	@$(REBAR) compile skip_deps=true
+	@$(REBAR) compile
+
 xref:
-	@$(REBAR) xref skip_deps=true
+	@$(REBAR) xref
+
 eunit:
-	@$(REBAR) eunit skip_deps=true
+	@$(REBAR) eunit
+
 check_plt:
 	@$(REBAR) compile
 	dialyzer --check_plt --plt $(PLT_FILE) --apps $(APPS)
+
 build_plt:
 	@$(REBAR) compile
 	dialyzer --build_plt --output_plt $(PLT_FILE) --apps $(APPS)
+
 dialyzer:
 	@$(REBAR) compile
-	dialyzer --plt $(PLT_FILE) --dump_callgraph $(DOT_FILE) -Wrace_conditions ebin/
+	dialyzer --plt $(PLT_FILE) --dump_callgraph $(DOT_FILE) -Wrace_conditions _build/default/lib/leo_commons/ebin/
+
 doc: compile
-	@$(REBAR) doc
+	@$(REBAR) edoc
+
 callgraph: graphviz
 	dot -Tpng -o$(CALL_GRAPH_FILE) $(DOT_FILE)
+
 graphviz:
 	$(if $(shell which dot),,$(error "To make the depgraph, you need graphviz installed"))
+
 clean:
-	@$(REBAR) clean skip_deps=true
-distclean:
-	@$(REBAR) delete-deps
 	@$(REBAR) clean
+
+distclean:
+	@rm -rf _build
+	@$(REBAR) clean --all
